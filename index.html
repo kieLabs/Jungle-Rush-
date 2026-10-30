@@ -1,0 +1,116 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width,initial-scale=1,maximum-scale=1,user-scalable=no,viewport-fit=cover">
+  <meta name="theme-color" content="#071711">
+  <meta name="description" content="Run, escape and survive in Jungle Rush by GamerKie — an endless 3D jungle temple adventure.">
+  <title>JUNGLE RUSH — GamerKie</title>
+  <link rel="icon" href="assets/icons/gamerkie-leaf.svg" type="image/svg+xml">
+  <link rel="stylesheet" href="css/game.css">
+  <script type="importmap">
+    {
+      "imports": {
+        "three": "https://cdn.jsdelivr.net/npm/three@0.186.1/build/three.module.js"
+      }
+    }
+  </script>
+</head>
+<body>
+  <main id="gameShell" aria-label="Jungle Rush game">
+    <div id="world" aria-label="3D jungle running scene"></div>
+    <div class="world-vignette"></div>
+    <div id="loadingScreen" class="loading-screen">
+      <div class="loading-mark">JR</div>
+      <div class="loading-title">JUNGLE RUSH</div>
+      <div class="loading-subtitle">G A M E R K I E</div>
+      <div class="loading-track"><span></span></div>
+      <p id="loadingStatus">Awakening the ancient temple…</p>
+    </div>
+
+    <header class="topbar" id="topbar">
+      <button class="brand-lockup" data-action="home" aria-label="GamerKie home">
+        <span class="brand-symbol">G</span><span class="brand-copy"><b>GAMERKIE</b><small>ARCADE ADVENTURES</small></span>
+      </button>
+      <div class="wallet">
+        <div class="wallet-pill"><span>🪙</span><b id="walletCoins">0</b></div>
+        <div class="wallet-pill"><span>💎</span><b id="walletGems">0</b></div>
+        <div class="wallet-pill token-pill"><span>🏵️</span><b id="walletTokens">0</b></div>
+      </div>
+      <div class="top-actions">
+        <button class="icon-btn" id="fullscreenBtn" title="Fullscreen" aria-label="Fullscreen">⛶</button>
+        <button class="icon-btn" data-action="settings" title="Settings" aria-label="Settings">⚙</button>
+      </div>
+    </header>
+
+    <section class="game-hud hidden" id="gameHud" aria-live="polite">
+      <div class="hud-left">
+        <button class="hud-pause" id="pauseBtn" aria-label="Pause game">Ⅱ</button>
+        <div class="hud-stat"><small>SCORE</small><b id="hudScore">0</b></div>
+        <div class="hud-stat"><small>DISTANCE</small><b><span id="hudDistance">0</span><em>m</em></b></div>
+      </div>
+      <div class="hud-center">
+        <div class="hud-currency"><span>🪙</span><b id="runCoins">0</b></div>
+        <div class="hud-currency gem"><span>💎</span><b id="runGems">0</b></div>
+      </div>
+      <div class="hud-right">
+        <div class="active-powers" id="activePowers"></div>
+        <div class="special-wrap"><div class="special-label">RELIC DASH <span id="specialPercent">0%</span></div><div class="special-meter"><i id="specialMeter"></i></div></div>
+        <button class="hud-settings" data-action="settings" aria-label="Quick settings">⚙</button>
+      </div>
+      <div class="mode-objective" id="modeObjective"></div>
+      <div class="monster-warning" id="monsterWarning">THE GUARDIAN IS CLOSING IN!</div>
+    </section>
+
+    <section class="mobile-controls hidden" id="mobileControls" aria-label="Touch controls">
+      <div class="control-cluster left-cluster">
+        <button data-control="left" aria-label="Move left">‹</button>
+        <button data-control="right" aria-label="Move right">›</button>
+      </div>
+      <div class="control-cluster right-cluster">
+        <button data-control="slide" aria-label="Slide">⌄</button>
+        <button data-control="jump" aria-label="Jump">⌃</button>
+        <button data-control="special" aria-label="Relic dash">✦</button>
+      </div>
+    </section>
+
+    <section class="home-screen screen-layer" id="homeScreen">
+      <div class="home-content">
+        <div class="eyebrow"><span class="eyebrow-line"></span> AN ANCIENT WORLD AWAITS <span class="eyebrow-line"></span></div>
+        <div class="hero-title-wrap">
+          <div class="hero-kicker">GAMERKIE ORIGINAL</div>
+          <h1>JUNGLE <span>RUSH</span></h1>
+          <div class="hero-tagline">RUN. ESCAPE. SURVIVE!</div>
+        </div>
+        <p class="hero-description">A stolen relic. A furious guardian. One endless run through forgotten worlds.</p>
+        <div class="home-play-row">
+          <button class="primary-btn play-btn" data-action="play"><span class="play-triangle">▶</span> START RUN</button>
+          <button class="secondary-btn" data-action="modes">GAME MODES <span>⌄</span></button>
+        </div>
+        <div class="home-grid">
+          <button class="menu-tile" data-action="characters"><span class="tile-icon">🧑🏽‍🚀</span><span><b>CHARACTERS</b><small>Choose your runner</small></span><i>›</i></button>
+          <button class="menu-tile" data-action="shop"><span class="tile-icon">🛍️</span><span><b>JUNGLE SHOP</b><small>Gear up & power up</small></span><i>›</i></button>
+          <button class="menu-tile" data-action="upgrades"><span class="tile-icon">⚒️</span><span><b>UPGRADES</b><small>Become unstoppable</small></span><i>›</i></button>
+          <button class="menu-tile" data-action="missions"><span class="tile-icon">📜</span><span><b>MISSIONS</b><small>Daily & weekly goals</small></span><i>›</i></button>
+          <button class="menu-tile" data-action="achievements"><span class="tile-icon">🏆</span><span><b>ACHIEVEMENTS</b><small>Claim your legend</small></span><i>›</i></button>
+          <button class="menu-tile" data-action="rewards"><span class="tile-icon">🎁</span><span><b>DAILY REWARDS</b><small>7-day treasure trail</small><i>›</i></span><i>›</i></button>
+        </div>
+        <div class="home-footer"><span>BEST DISTANCE <b id="homeBestDistance">0 m</b></span><span>BEST SCORE <b id="homeBestScore">0</b></span><span>TOTAL DISTANCE <b id="homeTotalDistance">0 m</b></span><span>RUNS <b id="homeTotalRuns">0</b></span><button data-action="howto">HOW TO PLAY ↗</button></div>
+      </div>
+      <div class="hero-side-note"><span>01</span><i></i><span>THE LOST TEMPLE</span></div>
+    </section>
+
+    <section class="modal-layer hidden" id="modalLayer" aria-modal="true" role="dialog" aria-labelledby="modalTitle">
+      <div class="modal-backdrop" data-action="close-modal"></div>
+      <article class="modal-panel">
+        <div class="modal-topline"><span class="modal-kicker">GAMERKIE • JUNGLE RUSH</span><button class="modal-close" data-action="close-modal" aria-label="Close">×</button></div>
+        <div id="modalContent"></div>
+      </article>
+    </section>
+
+    <div class="toast" id="toast" role="status" aria-live="polite"></div>
+    <div class="orientation-hint" id="orientationHint">For the best jungle view, rotate your device to landscape.</div>
+  </main>
+  <script type="module" src="js/app.js"></script>
+</body>
+</html>
