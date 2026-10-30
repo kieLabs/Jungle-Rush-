@@ -1,116 +1,3309 @@
-<!doctype html>
+<!DOCTYPE html>
 <html lang="en">
 <head>
-  <meta charset="utf-8">
-  <meta name="viewport" content="width=device-width,initial-scale=1,maximum-scale=1,user-scalable=no,viewport-fit=cover">
-  <meta name="theme-color" content="#071711">
-  <meta name="description" content="Run, escape and survive in Jungle Rush by GamerKie — an endless 3D jungle temple adventure.">
-  <title>JUNGLE RUSH — GamerKie</title>
-  <link rel="icon" href="assets/icons/gamerkie-leaf.svg" type="image/svg+xml">
-  <link rel="stylesheet" href="css/game.css">
-  <script type="importmap">
-    {
-      "imports": {
-        "three": "https://cdn.jsdelivr.net/npm/three@0.186.1/build/three.module.js"
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover" />
+  <meta name="theme-color" content="#07130d" />
+  <meta name="description" content="JUNGLE RUSH - GamerKie Edition. Run. Escape. Survive! Complete 3D Endless Runner Adventure." />
+  <title>JUNGLE RUSH – GamerKie Edition | Run. Escape. Survive!</title>
+  <style>
+    :root {
+      --bg-deep: #06110b;
+      --bg-panel: rgba(10, 26, 18, 0.92);
+      --bg-card: rgba(18, 43, 30, 0.88);
+      --gold: #f5c542;
+      --gold-dark: #b8860b;
+      --emerald: #2ecc71;
+      --cyan: #18dcff;
+      --magenta: #ff4dff;
+      --danger: #ff4757;
+      --text-main: #f8f9fa;
+      --text-muted: #a4b8ac;
+      --border-gold: rgba(245, 197, 66, 0.45);
+      --font-sans: 'Segoe UI', system-ui, -apple-system, BlinkMacSystemFont, Roboto, sans-serif;
+    }
+
+    * {
+      box-sizing: border-box;
+      margin: 0;
+      padding: 0;
+      user-select: none;
+      -webkit-user-select: none;
+      -webkit-touch-callout: none;
+    }
+
+    html, body {
+      width: 100%;
+      height: 100%;
+      overflow: hidden;
+      background-color: var(--bg-deep);
+      font-family: var(--font-sans);
+      color: var(--text-main);
+      touch-action: none;
+      overscroll-behavior: none;
+    }
+
+    #jr-app {
+      position: relative;
+      width: 100%;
+      height: 100%;
+      overflow: hidden;
+    }
+
+    #jr-canvas-container {
+      position: absolute;
+      inset: 0;
+      width: 100%;
+      height: 100%;
+      z-index: 1;
+    }
+
+    canvas {
+      display: block;
+      width: 100%;
+      height: 100%;
+    }
+
+    /* Overlay Screens */
+    .jr-screen {
+      position: absolute;
+      inset: 0;
+      z-index: 20;
+      display: none;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+      padding: 16px;
+      background: radial-gradient(circle at center, rgba(8, 24, 16, 0.65) 0%, rgba(4, 12, 8, 0.92) 100%);
+      backdrop-filter: blur(6px);
+    }
+
+    .jr-screen.active {
+      display: flex;
+    }
+
+    /* Loading Screen */
+    #jr-loading-screen {
+      z-index: 100;
+      background: linear-gradient(160deg, #040d08 0%, #0d2618 50%, #05100a 100%);
+    }
+
+    .brand-badge {
+      display: inline-block;
+      padding: 4px 14px;
+      border-radius: 999px;
+      background: linear-gradient(90deg, var(--gold-dark), var(--gold));
+      color: #08140d;
+      font-weight: 900;
+      font-size: 0.78rem;
+      letter-spacing: 2px;
+      text-transform: uppercase;
+      margin-bottom: 8px;
+      box-shadow: 0 4px 15px rgba(245, 197, 66, 0.4);
+    }
+
+    .game-title {
+      font-size: clamp(2.2rem, 6vw, 4.2rem);
+      font-weight: 900;
+      letter-spacing: 3px;
+      text-transform: uppercase;
+      background: linear-gradient(180deg, #fff6d1 0%, #f5c542 45%, #c87d12 100%);
+      -webkit-background-clip: text;
+      -webkit-text-fill-color: transparent;
+      filter: drop-shadow(0 6px 18px rgba(0, 0, 0, 0.85));
+      text-align: center;
+      line-height: 1.05;
+    }
+
+    .game-tagline {
+      font-size: clamp(0.95rem, 2.2vw, 1.25rem);
+      color: var(--emerald);
+      letter-spacing: 4px;
+      text-transform: uppercase;
+      font-weight: 700;
+      margin-top: 6px;
+      margin-bottom: 18px;
+      text-shadow: 0 2px 8px rgba(0,0,0,0.8);
+    }
+
+    .loading-bar-wrap {
+      width: min(360px, 85vw);
+      height: 12px;
+      background: rgba(255, 255, 255, 0.1);
+      border-radius: 999px;
+      border: 1px solid var(--border-gold);
+      overflow: hidden;
+      margin-top: 16px;
+    }
+
+    .loading-bar-fill {
+      height: 100%;
+      width: 0%;
+      background: linear-gradient(90deg, var(--emerald), var(--gold));
+      transition: width 0.2s ease;
+    }
+
+    /* Top Currency Bar on Menus */
+    .menu-top-bar {
+      width: min(980px, 96vw);
+      display: flex;
+      flex-wrap: wrap;
+      align-items: center;
+      justify-content: space-between;
+      gap: 10px;
+      padding: 10px 16px;
+      background: var(--bg-panel);
+      border: 1px solid var(--border-gold);
+      border-radius: 14px;
+      margin-bottom: 12px;
+      box-shadow: 0 8px 24px rgba(0,0,0,0.5);
+    }
+
+    .currency-group {
+      display: flex;
+      align-items: center;
+      gap: 12px;
+      flex-wrap: wrap;
+    }
+
+    .currency-pill {
+      display: flex;
+      align-items: center;
+      gap: 6px;
+      background: rgba(0, 0, 0, 0.45);
+      padding: 6px 12px;
+      border-radius: 999px;
+      border: 1px solid rgba(255, 255, 255, 0.14);
+      font-weight: 800;
+      font-size: 0.92rem;
+    }
+
+    .dot-coin { width: 12px; height: 12px; border-radius: 50%; background: var(--gold); box-shadow: 0 0 8px var(--gold); }
+    .dot-gem { width: 12px; height: 12px; transform: rotate(45deg); background: var(--cyan); box-shadow: 0 0 8px var(--cyan); }
+    .dot-token { width: 12px; height: 12px; border-radius: 3px; background: var(--magenta); box-shadow: 0 0 8px var(--magenta); }
+
+    /* Main Menu Layout */
+    .main-menu-container {
+      width: min(980px, 96vw);
+      display: grid;
+      grid-template-columns: 1.15fr 0.85fr;
+      gap: 16px;
+      align-items: stretch;
+    }
+
+    @media (max-width: 780px) {
+      .main-menu-container {
+        grid-template-columns: 1fr;
+        max-height: 82vh;
+        overflow-y: auto;
       }
     }
-  </script>
+
+    .hero-card, .menu-nav-card {
+      background: var(--bg-panel);
+      border: 1px solid var(--border-gold);
+      border-radius: 18px;
+      padding: 20px;
+      display: flex;
+      flex-direction: column;
+      justify-content: space-between;
+      box-shadow: 0 12px 32px rgba(0,0,0,0.6);
+    }
+
+    .mode-selector-grid {
+      display: grid;
+      grid-template-columns: repeat(3, 1fr);
+      gap: 8px;
+      margin: 12px 0;
+    }
+
+    @media (max-width: 520px) {
+      .mode-selector-grid {
+        grid-template-columns: repeat(2, 1fr);
+      }
+    }
+
+    .mode-btn {
+      background: rgba(255, 255, 255, 0.06);
+      border: 1px solid rgba(255, 255, 255, 0.15);
+      border-radius: 10px;
+      padding: 8px 6px;
+      color: var(--text-muted);
+      font-size: 0.76rem;
+      font-weight: 700;
+      cursor: pointer;
+      text-align: center;
+      transition: all 0.15s ease;
+    }
+
+    .mode-btn.active {
+      background: linear-gradient(135deg, rgba(46, 204, 113, 0.28), rgba(245, 197, 66, 0.25));
+      border-color: var(--gold);
+      color: #fff;
+      box-shadow: 0 0 12px rgba(245, 197, 66, 0.3);
+    }
+
+    .btn-primary {
+      background: linear-gradient(135deg, #2ecc71 0%, #16a085 100%);
+      color: #04140b;
+      border: 2px solid #a3ffcb;
+      padding: 14px 24px;
+      border-radius: 14px;
+      font-size: 1.25rem;
+      font-weight: 900;
+      letter-spacing: 1.5px;
+      text-transform: uppercase;
+      cursor: pointer;
+      box-shadow: 0 8px 22px rgba(46, 204, 113, 0.45);
+      transition: transform 0.12s ease, box-shadow 0.12s ease;
+    }
+
+    .btn-primary:hover {
+      transform: translateY(-2px);
+      box-shadow: 0 10px 26px rgba(46, 204, 113, 0.65);
+    }
+
+    .btn-primary:active {
+      transform: translateY(1px);
+    }
+
+    .btn-gold {
+      background: linear-gradient(135deg, #f5c542 0%, #d48806 100%);
+      color: #160d02;
+      border: 1px solid #fff3b0;
+      padding: 10px 16px;
+      border-radius: 10px;
+      font-weight: 800;
+      font-size: 0.9rem;
+      cursor: pointer;
+      transition: transform 0.12s ease;
+    }
+
+    .btn-gold:hover { transform: translateY(-1px); }
+
+    .btn-secondary {
+      background: rgba(255, 255, 255, 0.09);
+      color: var(--text-main);
+      border: 1px solid rgba(245, 197, 66, 0.35);
+      padding: 10px 14px;
+      border-radius: 11px;
+      font-weight: 700;
+      font-size: 0.9rem;
+      cursor: pointer;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      gap: 6px;
+      transition: background 0.15s ease, border-color 0.15s ease;
+    }
+
+    .btn-secondary:hover {
+      background: rgba(245, 197, 66, 0.18);
+      border-color: var(--gold);
+    }
+
+    .nav-grid {
+      display: grid;
+      grid-template-columns: repeat(2, 1fr);
+      gap: 10px;
+    }
+
+    .stats-strip {
+      display: grid;
+      grid-template-columns: repeat(4, 1fr);
+      gap: 8px;
+      margin-top: 12px;
+      padding-top: 12px;
+      border-top: 1px solid rgba(255,255,255,0.1);
+    }
+
+    .stat-mini {
+      background: rgba(0,0,0,0.35);
+      padding: 8px;
+      border-radius: 8px;
+      text-align: center;
+    }
+
+    .stat-mini span {
+      display: block;
+      font-size: 0.7rem;
+      color: var(--text-muted);
+      text-transform: uppercase;
+    }
+
+    .stat-mini strong {
+      font-size: 0.98rem;
+      color: var(--gold);
+    }
+
+    /* Sub-Menus (Characters, Shop, Upgrades, Missions, Achievements, Daily, Settings, HowTo) */
+    .modal-panel {
+      width: min(960px, 96vw);
+      max-height: 88vh;
+      background: var(--bg-panel);
+      border: 1px solid var(--border-gold);
+      border-radius: 18px;
+      display: flex;
+      flex-direction: column;
+      overflow: hidden;
+      box-shadow: 0 18px 48px rgba(0,0,0,0.75);
+    }
+
+    .modal-header {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      padding: 14px 20px;
+      background: rgba(0, 0, 0, 0.4);
+      border-bottom: 1px solid var(--border-gold);
+    }
+
+    .modal-header h2 {
+      font-size: 1.35rem;
+      color: var(--gold);
+      text-transform: uppercase;
+      letter-spacing: 1.5px;
+    }
+
+    .modal-body {
+      padding: 18px;
+      overflow-y: auto;
+      flex: 1;
+    }
+
+    .tabs-bar {
+      display: flex;
+      gap: 8px;
+      flex-wrap: wrap;
+      margin-bottom: 16px;
+    }
+
+    .tab-btn {
+      padding: 8px 14px;
+      border-radius: 999px;
+      background: rgba(255,255,255,0.07);
+      border: 1px solid rgba(255,255,255,0.15);
+      color: var(--text-muted);
+      font-weight: 700;
+      font-size: 0.84rem;
+      cursor: pointer;
+    }
+
+    .tab-btn.active {
+      background: var(--gold);
+      color: #08120c;
+      border-color: #fff;
+    }
+
+    .cards-grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fill, minmax(220px, 1fr));
+      gap: 14px;
+    }
+
+    .item-card {
+      background: var(--bg-card);
+      border: 1px solid rgba(255, 255, 255, 0.12);
+      border-radius: 14px;
+      padding: 14px;
+      display: flex;
+      flex-direction: column;
+      justify-content: space-between;
+      gap: 10px;
+      transition: border-color 0.15s ease;
+    }
+
+    .item-card.selected {
+      border: 2px solid var(--emerald);
+      box-shadow: 0 0 16px rgba(46, 204, 113, 0.3);
+    }
+
+    .item-avatar {
+      height: 76px;
+      border-radius: 10px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-size: 2rem;
+      font-weight: 900;
+      background: radial-gradient(circle, rgba(255,255,255,0.14), rgba(0,0,0,0.45));
+      border: 1px solid rgba(255,255,255,0.08);
+    }
+
+    .progress-track {
+      width: 100%;
+      height: 8px;
+      background: rgba(0,0,0,0.5);
+      border-radius: 999px;
+      overflow: hidden;
+      margin: 6px 0;
+    }
+
+    .progress-fill {
+      height: 100%;
+      background: linear-gradient(90deg, var(--emerald), var(--gold));
+    }
+
+    /* Gameplay HUD */
+    #jr-hud {
+      position: absolute;
+      inset: 0;
+      z-index: 10;
+      pointer-events: none;
+      display: none;
+      flex-direction: column;
+      justify-content: space-between;
+      padding: 12px 16px;
+    }
+
+    #jr-hud.active {
+      display: flex;
+    }
+
+    .hud-top {
+      display: grid;
+      grid-template-columns: 1fr auto 1fr;
+      align-items: start;
+      gap: 10px;
+    }
+
+    .hud-left, .hud-center, .hud-right {
+      display: flex;
+      align-items: center;
+      gap: 10px;
+      pointer-events: auto;
+    }
+
+    .hud-center {
+      justify-content: center;
+      flex-wrap: wrap;
+    }
+
+    .hud-right {
+      justify-content: flex-end;
+      flex-wrap: wrap;
+    }
+
+    .hud-box {
+      background: rgba(6, 18, 12, 0.78);
+      border: 1px solid rgba(245, 197, 66, 0.4);
+      border-radius: 12px;
+      padding: 6px 12px;
+      backdrop-filter: blur(4px);
+    }
+
+    .hud-score-val {
+      font-size: 1.35rem;
+      font-weight: 900;
+      color: var(--gold);
+      line-height: 1.1;
+    }
+
+    .hud-sub-val {
+      font-size: 0.78rem;
+      color: var(--text-muted);
+      font-weight: 700;
+    }
+
+    .hud-icon-btn {
+      width: 42px;
+      height: 42px;
+      border-radius: 11px;
+      background: rgba(6, 18, 12, 0.85);
+      border: 1px solid var(--border-gold);
+      color: var(--gold);
+      font-weight: 900;
+      font-size: 1rem;
+      cursor: pointer;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+    }
+
+    .active-powerups-stack {
+      display: flex;
+      flex-direction: column;
+      gap: 6px;
+      min-width: 140px;
+    }
+
+    .pw-pill {
+      background: rgba(8, 24, 16, 0.85);
+      border: 1px solid var(--cyan);
+      border-radius: 8px;
+      padding: 4px 8px;
+      font-size: 0.74rem;
+      font-weight: 800;
+    }
+
+    .pw-bar {
+      height: 4px;
+      background: var(--cyan);
+      border-radius: 2px;
+      margin-top: 3px;
+      transition: width 0.1s linear;
+    }
+
+    .hud-bottom {
+      display: flex;
+      align-items: flex-end;
+      justify-content: space-between;
+      pointer-events: none;
+    }
+
+    .ability-trigger-btn {
+      pointer-events: auto;
+      background: linear-gradient(135deg, #f5c542, #e67e22);
+      color: #09130d;
+      border: 2px solid #fff;
+      border-radius: 999px;
+      padding: 10px 18px;
+      font-weight: 900;
+      font-size: 0.86rem;
+      cursor: pointer;
+      box-shadow: 0 6px 20px rgba(245, 197, 66, 0.5);
+    }
+
+    .ability-trigger-btn:disabled {
+      opacity: 0.45;
+      filter: grayscale(0.8);
+      cursor: default;
+    }
+
+    .zone-banner {
+      position: absolute;
+      top: 78px;
+      left: 50%;
+      transform: translateX(-50%);
+      background: linear-gradient(90deg, transparent, rgba(10, 28, 18, 0.9), transparent);
+      border-top: 1px solid var(--gold);
+      border-bottom: 1px solid var(--gold);
+      padding: 6px 28px;
+      color: var(--gold);
+      font-weight: 900;
+      letter-spacing: 2px;
+      text-transform: uppercase;
+      font-size: 0.9rem;
+      opacity: 0;
+      transition: opacity 0.35s ease;
+      pointer-events: none;
+    }
+
+    .zone-banner.show {
+      opacity: 1;
+    }
+
+    /* Toast Notification */
+    #jr-toast {
+      position: absolute;
+      bottom: 24px;
+      left: 50%;
+      transform: translateX(-50%);
+      z-index: 95;
+      background: rgba(12, 34, 22, 0.95);
+      border: 1px solid var(--gold);
+      color: #fff;
+      padding: 10px 20px;
+      border-radius: 999px;
+      font-weight: 800;
+      font-size: 0.9rem;
+      box-shadow: 0 8px 25px rgba(0,0,0,0.65);
+      opacity: 0;
+      pointer-events: none;
+      transition: opacity 0.25s ease;
+    }
+
+    #jr-toast.show {
+      opacity: 1;
+    }
+
+    .settings-row {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      padding: 12px 0;
+      border-bottom: 1px solid rgba(255,255,255,0.08);
+      gap: 12px;
+      flex-wrap: wrap;
+    }
+
+    input[type="range"] {
+      accent-color: var(--gold);
+      width: 160px;
+    }
+
+    select {
+      background: #0d2418;
+      color: #fff;
+      border: 1px solid var(--gold);
+      padding: 6px 12px;
+      border-radius: 8px;
+      font-weight: 700;
+    }
+  </style>
+  <!-- Three.js CDN -->
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/three.js/r128/three.min.js"></script>
 </head>
 <body>
-  <main id="gameShell" aria-label="Jungle Rush game">
-    <div id="world" aria-label="3D jungle running scene"></div>
-    <div class="world-vignette"></div>
-    <div id="loadingScreen" class="loading-screen">
-      <div class="loading-mark">JR</div>
-      <div class="loading-title">JUNGLE RUSH</div>
-      <div class="loading-subtitle">G A M E R K I E</div>
-      <div class="loading-track"><span></span></div>
-      <p id="loadingStatus">Awakening the ancient temple…</p>
+<div id="jr-app">
+  <!-- 3D WebGL Viewport -->
+  <div id="jr-canvas-container"></div>
+
+  <!-- Loading Screen -->
+  <div id="jr-loading-screen" class="jr-screen active">
+    <span class="brand-badge">GAMERKIE EDITION</span>
+    <h1 class="game-title">JUNGLE RUSH</h1>
+    <p class="game-tagline" data-i18n="tagline">Run. Escape. Survive!</p>
+    <p style="color:var(--text-muted);font-size:0.88rem;" id="jr-loading-status">Initializing 3D Procedural Temple Engine...</p>
+    <div class="loading-bar-wrap">
+      <div class="loading-bar-fill" id="jr-loading-fill"></div>
+    </div>
+  </div>
+
+  <!-- Live Gameplay HUD -->
+  <div id="jr-hud">
+    <div class="hud-top">
+      <div class="hud-left">
+        <button class="hud-icon-btn" id="btn-hud-pause" title="Pause (Esc)">II</button>
+        <div class="hud-box">
+          <div class="hud-score-val" id="hud-score">0</div>
+          <div class="hud-sub-val"><span id="hud-distance">0</span>m | <span id="hud-multiplier">1x</span></div>
+        </div>
+        <div class="hud-box" id="hud-mode-box" style="display:none;">
+          <div class="hud-score-val" style="color:var(--cyan);font-size:1.05rem;" id="hud-mode-val">--</div>
+          <div class="hud-sub-val" id="hud-mode-label">OBJ</div>
+        </div>
+      </div>
+
+      <div class="hud-center">
+        <div class="currency-pill"><span class="dot-coin"></span><span id="hud-coins">0</span></div>
+        <div class="currency-pill"><span class="dot-gem"></span><span id="hud-gems">0</span></div>
+        <div class="currency-pill"><span class="dot-token"></span><span id="hud-tokens">0</span></div>
+      </div>
+
+      <div class="hud-right">
+        <div class="active-powerups-stack" id="hud-powerups"></div>
+        <button class="hud-icon-btn" id="btn-hud-fullscreen" title="Fullscreen">⛶</button>
+        <button class="hud-icon-btn" id="btn-hud-settings" title="Settings">⚙</button>
+      </div>
     </div>
 
-    <header class="topbar" id="topbar">
-      <button class="brand-lockup" data-action="home" aria-label="GamerKie home">
-        <span class="brand-symbol">G</span><span class="brand-copy"><b>GAMERKIE</b><small>ARCADE ADVENTURES</small></span>
-      </button>
-      <div class="wallet">
-        <div class="wallet-pill"><span>🪙</span><b id="walletCoins">0</b></div>
-        <div class="wallet-pill"><span>💎</span><b id="walletGems">0</b></div>
-        <div class="wallet-pill token-pill"><span>🏵️</span><b id="walletTokens">0</b></div>
-      </div>
-      <div class="top-actions">
-        <button class="icon-btn" id="fullscreenBtn" title="Fullscreen" aria-label="Fullscreen">⛶</button>
-        <button class="icon-btn" data-action="settings" title="Settings" aria-label="Settings">⚙</button>
-      </div>
-    </header>
+    <div class="zone-banner" id="jr-zone-banner">ANCIENT JUNGLE TEMPLE</div>
 
-    <section class="game-hud hidden" id="gameHud" aria-live="polite">
-      <div class="hud-left">
-        <button class="hud-pause" id="pauseBtn" aria-label="Pause game">Ⅱ</button>
-        <div class="hud-stat"><small>SCORE</small><b id="hudScore">0</b></div>
-        <div class="hud-stat"><small>DISTANCE</small><b><span id="hudDistance">0</span><em>m</em></b></div>
+    <div class="hud-bottom">
+      <div style="display:flex;gap:8px;pointer-events:auto;">
+        <button class="ability-trigger-btn" id="btn-hud-headstart" style="display:none;background:linear-gradient(135deg,#18dcff,#1A73E8);">🚀 HEAD START (<span id="hud-headstart-cnt">0</span>)</button>
       </div>
-      <div class="hud-center">
-        <div class="hud-currency"><span>🪙</span><b id="runCoins">0</b></div>
-        <div class="hud-currency gem"><span>💎</span><b id="runGems">0</b></div>
+      <div style="display:flex;flex-direction:column;align-items:flex-end;gap:6px;">
+        <div id="hud-fps" style="font-size:0.72rem;color:var(--emerald);font-weight:800;display:none;">60 FPS</div>
+        <button class="ability-trigger-btn" id="btn-hud-ability">⚡ ABILITY READY (DBL-TAP / E)</button>
       </div>
-      <div class="hud-right">
-        <div class="active-powers" id="activePowers"></div>
-        <div class="special-wrap"><div class="special-label">RELIC DASH <span id="specialPercent">0%</span></div><div class="special-meter"><i id="specialMeter"></i></div></div>
-        <button class="hud-settings" data-action="settings" aria-label="Quick settings">⚙</button>
-      </div>
-      <div class="mode-objective" id="modeObjective"></div>
-      <div class="monster-warning" id="monsterWarning">THE GUARDIAN IS CLOSING IN!</div>
-    </section>
+    </div>
+  </div>
 
-    <section class="mobile-controls hidden" id="mobileControls" aria-label="Touch controls">
-      <div class="control-cluster left-cluster">
-        <button data-control="left" aria-label="Move left">‹</button>
-        <button data-control="right" aria-label="Move right">›</button>
+  <!-- Main Menu Screen -->
+  <div id="jr-main-menu" class="jr-screen">
+    <div class="menu-top-bar">
+      <div style="display:flex;align-items:center;gap:10px;">
+        <span class="brand-badge" style="margin:0;">GAMERKIE</span>
+        <strong style="letter-spacing:1px;color:var(--gold);">JUNGLE RUSH 3D</strong>
       </div>
-      <div class="control-cluster right-cluster">
-        <button data-control="slide" aria-label="Slide">⌄</button>
-        <button data-control="jump" aria-label="Jump">⌃</button>
-        <button data-control="special" aria-label="Relic dash">✦</button>
+      <div class="currency-group">
+        <div class="currency-pill" title="Gold Coins"><span class="dot-coin"></span><span id="menu-coins">0</span></div>
+        <div class="currency-pill" title="Magic Gems"><span class="dot-gem"></span><span id="menu-gems">0</span></div>
+        <div class="currency-pill" title="Ancient Tokens"><span class="dot-token"></span><span id="menu-tokens">0</span></div>
+        <button class="btn-secondary" id="btn-menu-fullscreen" style="padding:6px 10px;font-size:0.8rem;">⛶ Fullscreen</button>
       </div>
-    </section>
+    </div>
 
-    <section class="home-screen screen-layer" id="homeScreen">
-      <div class="home-content">
-        <div class="eyebrow"><span class="eyebrow-line"></span> AN ANCIENT WORLD AWAITS <span class="eyebrow-line"></span></div>
-        <div class="hero-title-wrap">
-          <div class="hero-kicker">GAMERKIE ORIGINAL</div>
-          <h1>JUNGLE <span>RUSH</span></h1>
-          <div class="hero-tagline">RUN. ESCAPE. SURVIVE!</div>
+    <div class="main-menu-container">
+      <div class="hero-card">
+        <div>
+          <span class="brand-badge">GAMERKIE ORIGINAL</span>
+          <h1 class="game-title" style="text-align:left;font-size:clamp(1.9rem,4.5vw,3.1rem);">JUNGLE RUSH</h1>
+          <p class="game-tagline" style="text-align:left;margin-bottom:10px;" data-i18n="tagline">Run. Escape. Survive!</p>
+          <p style="font-size:0.85rem;color:var(--text-muted);line-height:1.4;">
+            Active Hero: <strong style="color:#fff;" id="menu-active-char">Kaelen Vance</strong> |
+            Skin: <strong style="color:var(--cyan);" id="menu-active-skin">Classic Explorer</strong>
+          </p>
+
+          <div style="margin-top:12px;">
+            <span style="font-size:0.75rem;text-transform:uppercase;color:var(--gold);font-weight:800;letter-spacing:1px;" data-i18n="selectMode">Select Game Mode:</span>
+            <div class="mode-selector-grid" id="mode-selector">
+              <button class="mode-btn active" data-mode="classic">🏛️ Classic Endless</button>
+              <button class="mode-btn" data-mode="challenge">🎯 Challenge Mode</button>
+              <button class="mode-btn" data-mode="treasure">👑 Treasure Hunt</button>
+              <button class="mode-btn" data-mode="timetrial">⏱️ Time Trial</button>
+              <button class="mode-btn" data-mode="daily">📅 Daily Challenge</button>
+              <button class="mode-btn" data-mode="event">🌋 Blood Moon Event</button>
+            </div>
+          </div>
         </div>
-        <p class="hero-description">A stolen relic. A furious guardian. One endless run through forgotten worlds.</p>
-        <div class="home-play-row">
-          <button class="primary-btn play-btn" data-action="play"><span class="play-triangle">▶</span> START RUN</button>
-          <button class="secondary-btn" data-action="modes">GAME MODES <span>⌄</span></button>
+
+        <div>
+          <button class="btn-primary" id="btn-play-now" style="width:100%;" data-i18n="playNow">▶ RUN NOW</button>
+          <div class="stats-strip">
+            <div class="stat-mini"><span>Best Score</span><strong id="stat-best-score">0</strong></div>
+            <div class="stat-mini"><span>Best Dist</span><strong id="stat-best-dist">0m</strong></div>
+            <div class="stat-mini"><span>Total Dist</span><strong id="stat-total-dist">0m</strong></div>
+            <div class="stat-mini"><span>Total Runs</span><strong id="stat-total-runs">0</strong></div>
+          </div>
         </div>
-        <div class="home-grid">
-          <button class="menu-tile" data-action="characters"><span class="tile-icon">🧑🏽‍🚀</span><span><b>CHARACTERS</b><small>Choose your runner</small></span><i>›</i></button>
-          <button class="menu-tile" data-action="shop"><span class="tile-icon">🛍️</span><span><b>JUNGLE SHOP</b><small>Gear up & power up</small></span><i>›</i></button>
-          <button class="menu-tile" data-action="upgrades"><span class="tile-icon">⚒️</span><span><b>UPGRADES</b><small>Become unstoppable</small></span><i>›</i></button>
-          <button class="menu-tile" data-action="missions"><span class="tile-icon">📜</span><span><b>MISSIONS</b><small>Daily & weekly goals</small></span><i>›</i></button>
-          <button class="menu-tile" data-action="achievements"><span class="tile-icon">🏆</span><span><b>ACHIEVEMENTS</b><small>Claim your legend</small></span><i>›</i></button>
-          <button class="menu-tile" data-action="rewards"><span class="tile-icon">🎁</span><span><b>DAILY REWARDS</b><small>7-day treasure trail</small><i>›</i></span><i>›</i></button>
-        </div>
-        <div class="home-footer"><span>BEST DISTANCE <b id="homeBestDistance">0 m</b></span><span>BEST SCORE <b id="homeBestScore">0</b></span><span>TOTAL DISTANCE <b id="homeTotalDistance">0 m</b></span><span>RUNS <b id="homeTotalRuns">0</b></span><button data-action="howto">HOW TO PLAY ↗</button></div>
       </div>
-      <div class="hero-side-note"><span>01</span><i></i><span>THE LOST TEMPLE</span></div>
-    </section>
 
-    <section class="modal-layer hidden" id="modalLayer" aria-modal="true" role="dialog" aria-labelledby="modalTitle">
-      <div class="modal-backdrop" data-action="close-modal"></div>
-      <article class="modal-panel">
-        <div class="modal-topline"><span class="modal-kicker">GAMERKIE • JUNGLE RUSH</span><button class="modal-close" data-action="close-modal" aria-label="Close">×</button></div>
-        <div id="modalContent"></div>
-      </article>
-    </section>
+      <div class="menu-nav-card">
+        <div class="nav-grid">
+          <button class="btn-secondary" data-open="jr-characters-modal">🏃 <span data-i18n="characters">Characters</span></button>
+          <button class="btn-secondary" data-open="jr-shop-modal">🛒 <span data-i18n="shop">Game Shop</span></button>
+          <button class="btn-secondary" data-open="jr-upgrades-modal">⚡ <span data-i18n="upgrades">Upgrades</span></button>
+          <button class="btn-secondary" data-open="jr-missions-modal">📜 <span data-i18n="missions">Missions</span></button>
+          <button class="btn-secondary" data-open="jr-achievements-modal">🏆 <span data-i18n="achievements">Achievements</span></button>
+          <button class="btn-secondary" data-open="jr-daily-modal">🎁 <span data-i18n="dailyRewards">Daily Rewards</span></button>
+          <button class="btn-secondary" data-open="jr-settings-modal">⚙️ <span data-i18n="settings">Settings</span></button>
+          <button class="btn-secondary" data-open="jr-howto-modal">📖 <span data-i18n="howToPlay">How to Play</span></button>
+        </div>
 
-    <div class="toast" id="toast" role="status" aria-live="polite"></div>
-    <div class="orientation-hint" id="orientationHint">For the best jungle view, rotate your device to landscape.</div>
-  </main>
-  <script type="module" src="js/app.js"></script>
+        <div style="margin-top:14px;background:rgba(0,0,0,0.38);border-radius:12px;padding:12px;border:1px solid rgba(255,255,255,0.08);">
+          <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:6px;">
+            <span style="font-size:0.76rem;font-weight:800;color:var(--gold);text-transform:uppercase;">Active Mission Tracker</span>
+            <span style="font-size:0.74rem;color:var(--emerald);" id="menu-mission-summary">In Progress</span>
+          </div>
+          <div id="menu-missions-preview" style="font-size:0.8rem;color:var(--text-muted);display:flex;flex-direction:column;gap:4px;"></div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Characters & Customization Modal -->
+  <div id="jr-characters-modal" class="jr-screen">
+    <div class="modal-panel">
+      <div class="modal-header">
+        <h2>🏃 Heroes & Customization</h2>
+        <button class="btn-secondary" data-close-modal>✕ Back</button>
+      </div>
+      <div class="modal-body">
+        <div class="tabs-bar">
+          <button class="tab-btn active" data-char-tab="roster">Playable Heroes (8)</button>
+          <button class="tab-btn" data-char-tab="custom">Outfits, Headgear & Skins</button>
+        </div>
+        <div id="char-roster-view" class="cards-grid"></div>
+        <div id="char-custom-view" class="cards-grid" style="display:none;"></div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Shop Modal -->
+  <div id="jr-shop-modal" class="jr-screen">
+    <div class="modal-panel">
+      <div class="modal-header">
+        <h2>🛒 Ancient Temple Shop</h2>
+        <button class="btn-secondary" data-close-modal>✕ Back</button>
+      </div>
+      <div class="modal-body">
+        <div class="tabs-bar">
+          <button class="tab-btn active" data-shop-tab="boosters">Power-Ups & Boosters</button>
+          <button class="tab-btn" data-shop-tab="chests">Treasure Chests</button>
+          <button class="tab-btn" data-shop-tab="exclusive">Exclusive Event Rewards</button>
+        </div>
+        <div id="shop-items-grid" class="cards-grid"></div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Upgrades Modal -->
+  <div id="jr-upgrades-modal" class="jr-screen">
+    <div class="modal-panel">
+      <div class="modal-header">
+        <h2>⚡ Ability & Power-Up Upgrades</h2>
+        <button class="btn-secondary" data-close-modal>✕ Back</button>
+      </div>
+      <div class="modal-body">
+        <div id="upgrades-grid" class="cards-grid"></div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Missions & Challenges Modal -->
+  <div id="jr-missions-modal" class="jr-screen">
+    <div class="modal-panel">
+      <div class="modal-header">
+        <h2>📜 Missions, Daily & Weekly Challenges</h2>
+        <button class="btn-secondary" data-close-modal>✕ Back</button>
+      </div>
+      <div class="modal-body">
+        <div class="tabs-bar">
+          <button class="tab-btn active" data-mis-tab="standard">Active Missions</button>
+          <button class="tab-btn" data-mis-tab="daily">Daily Challenges (24h)</button>
+          <button class="tab-btn" data-mis-tab="weekly">Weekly Challenges</button>
+        </div>
+        <div id="missions-list-container" class="cards-grid"></div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Achievements Modal -->
+  <div id="jr-achievements-modal" class="jr-screen">
+    <div class="modal-panel">
+      <div class="modal-header">
+        <h2>🏆 Hall of Achievements</h2>
+        <button class="btn-secondary" data-close-modal>✕ Back</button>
+      </div>
+      <div class="modal-body">
+        <div id="achievements-grid" class="cards-grid"></div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Daily Rewards 7-Day Calendar Modal -->
+  <div id="jr-daily-modal" class="jr-screen">
+    <div class="modal-panel">
+      <div class="modal-header">
+        <h2>🎁 7-Day Explorer Login Calendar</h2>
+        <button class="btn-secondary" data-close-modal>✕ Back</button>
+      </div>
+      <div class="modal-body">
+        <p style="margin-bottom:14px;color:var(--text-muted);font-size:0.9rem;">
+          Consecutive Login Streak: <strong style="color:var(--gold);" id="daily-streak-count">1 Day</strong>
+        </p>
+        <div id="daily-calendar-grid" class="cards-grid"></div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Settings Modal -->
+  <div id="jr-settings-modal" class="jr-screen">
+    <div class="modal-panel">
+      <div class="modal-header">
+        <h2>⚙️ Game Settings & Controls</h2>
+        <button class="btn-secondary" id="btn-close-settings">✕ Back</button>
+      </div>
+      <div class="modal-body">
+        <div class="settings-row">
+          <div><strong>Background Jungle Music</strong><div style="font-size:0.78rem;color:var(--text-muted);">Procedural Tribal Percussion & Marimba</div></div>
+          <div style="display:flex;align-items:center;gap:10px;">
+            <input type="checkbox" id="set-music-on" checked style="width:20px;height:20px;" />
+            <input type="range" id="set-music-vol" min="0" max="100" value="65" />
+          </div>
+        </div>
+        <div class="settings-row">
+          <div><strong>Sound Effects (SFX)</strong><div style="font-size:0.78rem;color:var(--text-muted);">Footsteps, Coins, Gems, Jumps, Traps</div></div>
+          <div style="display:flex;align-items:center;gap:10px;">
+            <input type="checkbox" id="set-sfx-on" checked style="width:20px;height:20px;" />
+            <input type="range" id="set-sfx-vol" min="0" max="100" value="85" />
+          </div>
+        </div>
+        <div class="settings-row">
+          <div><strong>Graphics Quality Preset</strong><div style="font-size:0.78rem;color:var(--text-muted);">Adjusts WebGL Pixel Ratio, Shadows & Weather Particles</div></div>
+          <select id="set-graphics">
+            <option value="low">Low (Battery Saver)</option>
+            <option value="medium">Medium (Balanced)</option>
+            <option value="high" selected>High (Ultra 3D)</option>
+          </select>
+        </div>
+        <div class="settings-row">
+          <div><strong>Camera Follow Sensitivity</strong><div style="font-size:0.78rem;color:var(--text-muted);">Exponential Damping Stiffness</div></div>
+          <input type="range" id="set-cam-sens" min="4" max="14" value="8" />
+        </div>
+        <div class="settings-row">
+          <div><strong>Language Selection</strong><div style="font-size:0.78rem;color:var(--text-muted);">Interface Localization</div></div>
+          <select id="set-language">
+            <option value="en" selected>English</option>
+            <option value="es">Español</option>
+            <option value="fr">Français</option>
+            <option value="hi">हिन्दी</option>
+            <option value="pt">Português</option>
+          </select>
+        </div>
+        <div class="settings-row">
+          <div><strong>Haptic Vibration</strong><div style="font-size:0.78rem;color:var(--text-muted);">Mobile Haptic Feedback on Collisions & Pickups</div></div>
+          <input type="checkbox" id="set-vibration" checked style="width:20px;height:20px;" />
+        </div>
+        <div class="settings-row">
+          <div><strong>Performance Telemetry Mode</strong><div style="font-size:0.78rem;color:var(--text-muted);">Show Live FPS Counter & Low-Latency Pipeline</div></div>
+          <input type="checkbox" id="set-perf-mode" style="width:20px;height:20px;" />
+        </div>
+        <div class="settings-row" style="border-bottom:none;margin-top:10px;">
+          <div>
+            <strong>Local Save Data Management</strong>
+            <div style="font-size:0.78rem;color:var(--text-muted);">Progress is stored locally on this browser via localStorage (offline-compatible, not cloud-synced).</div>
+          </div>
+          <button class="btn-secondary" id="btn-reset-save" style="border-color:var(--danger);color:var(--danger);">🗑️ Reset Game Data</button>
+        </div>
+        <div style="margin-top:16px;padding:12px;background:rgba(0,0,0,0.35);border-radius:10px;font-size:0.8rem;color:var(--text-muted);line-height:1.45;">
+          <strong style="color:var(--gold);">About GamerKie & Privacy:</strong> JUNGLE RUSH – GamerKie Edition is an original 3D WebGL endless adventure engineered for cross-platform web and Blogger integration. No personal data leaves the device.
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- How To Play Modal -->
+  <div id="jr-howto-modal" class="jr-screen">
+    <div class="modal-panel">
+      <div class="modal-header">
+        <h2>📖 Explorer Survival Guide</h2>
+        <button class="btn-secondary" data-close-modal>✕ Back</button>
+      </div>
+      <div class="modal-body">
+        <div class="cards-grid">
+          <div class="item-card">
+            <strong style="color:var(--gold);">📱 Mobile Touch Controls</strong>
+            <p style="font-size:0.85rem;color:var(--text-muted);line-height:1.5;">
+              • <b>Swipe Left / Right:</b> Switch between the 3 temple lanes.<br/>
+              • <b>Swipe Up:</b> Jump over low barriers, spikes, gaps & lava.<br/>
+              • <b>Swipe Down:</b> Slide under ancient gates, branches & pendulums.<br/>
+              • <b>Double Tap:</b> Activate Hero Special Ability.
+            </p>
+          </div>
+          <div class="item-card">
+            <strong style="color:var(--gold);">⌨️ Desktop Keyboard Controls</strong>
+            <p style="font-size:0.85rem;color:var(--text-muted);line-height:1.5;">
+              • <b>Left / A</b> & <b>Right / D:</b> Switch lanes smoothly.<br/>
+              • <b>Up / W / Space:</b> Jump.<br/>
+              • <b>Down / S:</b> Slide.<br/>
+              • <b>E / Shift:</b> Trigger Hero Special Ability.<br/>
+              • <b>Escape / P:</b> Pause Game.
+            </p>
+          </div>
+          <div class="item-card">
+            <strong style="color:var(--gold);">💎 Currencies & Endless Survival</strong>
+            <p style="font-size:0.85rem;color:var(--text-muted);line-height:1.5;">
+              There is <b>NO distance limit</b> and <b>NO final level</b>. Run through 5 cycling biomes (Jungle, Waterfall Gorge, Lava Caverns, Sunken Ruins, Golden Sanctum). Collect Gold Coins, Magic Gems, and Ancient Tokens to unlock all 8 Heroes and Level 10 Upgrades!
+            </p>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Pause Menu -->
+  <div id="jr-pause-modal" class="jr-screen">
+    <div class="modal-panel" style="max-width:420px;">
+      <div class="modal-header">
+        <h2>⏸ Expedition Paused</h2>
+      </div>
+      <div class="modal-body" style="display:flex;flex-direction:column;gap:12px;">
+        <button class="btn-primary" id="btn-pause-resume">▶ Resume Run</button>
+        <button class="btn-secondary" id="btn-pause-restart">🔄 Restart Run</button>
+        <button class="btn-secondary" id="btn-pause-settings">⚙️ Settings</button>
+        <button class="btn-secondary" id="btn-pause-menu">🏠 Main Menu</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- Game Over & Revive Screen -->
+  <div id="jr-gameover-modal" class="jr-screen">
+    <div class="modal-panel" style="max-width:520px;">
+      <div class="modal-header">
+        <h2 id="go-header-title">💀 Captured by the Temple Guardian!</h2>
+      </div>
+      <div class="modal-body" style="display:flex;flex-direction:column;gap:14px;">
+        <div class="stats-strip" style="margin-top:0;padding-top:0;border:none;">
+          <div class="stat-mini"><span>Final Score</span><strong id="go-score">0</strong></div>
+          <div class="stat-mini"><span>Distance</span><strong id="go-dist">0m</strong></div>
+          <div class="stat-mini"><span>Coins</span><strong id="go-coins">0</strong></div>
+          <div class="stat-mini"><span>Gems</span><strong id="go-gems">0</strong></div>
+        </div>
+        <div style="display:flex;justify-content:space-between;background:rgba(0,0,0,0.4);padding:10px 14px;border-radius:10px;font-size:0.85rem;">
+          <span>Personal Best Score: <strong style="color:var(--gold);" id="go-best-score">0</strong></span>
+          <span>Best Distance: <strong style="color:var(--emerald);" id="go-best-dist">0m</strong></span>
+        </div>
+
+        <!-- Revive Section -->
+        <div id="go-revive-box" style="background:rgba(24, 220, 255, 0.08);border:1px solid var(--cyan);border-radius:12px;padding:12px;">
+          <div style="font-size:0.82rem;font-weight:800;color:var(--cyan);margin-bottom:8px;text-transform:uppercase;">
+            ⚡ Second Chance Resurrection (<span id="go-revives-left">3</span> left this run)
+          </div>
+          <div style="display:grid;grid-template-columns:repeat(auto-fit,minmax(135px,1fr));gap:8px;">
+            <button class="btn-gold" id="btn-revive-gem">💎 Spend <span id="go-gem-cost">5</span> Gems</button>
+            <button class="btn-secondary" id="btn-revive-token">🏺 Use Revive Ankh (<span id="go-ankh-cnt">0</span>)</button>
+            <button class="btn-secondary" id="btn-revive-sponsor" title="Offline-compatible sponsor beacon">📡 Sponsor Beacon (3s)</button>
+          </div>
+        </div>
+
+        <div style="display:flex;gap:10px;">
+          <button class="btn-primary" id="btn-go-retry" style="flex:1;">🔄 Play Again</button>
+          <button class="btn-secondary" id="btn-go-menu" style="flex:1;">🏠 Main Menu</button>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Toast Notification -->
+  <div id="jr-toast">Achievement Unlocked!</div>
+</div>
+
+<script>
+/**
+ * JUNGLE RUSH – GAMERKIE EDITION
+ * Complete Self-Contained 3D Endless Runner Engine
+ * HTML5 + CSS3 + JavaScript + Three.js + Procedural Web Audio API
+ */
+(function() {
+  'use strict';
+
+  /* =========================================================================
+   * 1. LOCALIZATION DICTIONARY
+   * ========================================================================= */
+  const I18N = {
+    en: { tagline: 'Run. Escape. Survive!', selectMode: 'Select Game Mode:', playNow: '▶ RUN NOW', characters: 'Characters', shop: 'Game Shop', upgrades: 'Upgrades', missions: 'Missions', achievements: 'Achievements', dailyRewards: 'Daily Rewards', settings: 'Settings', howToPlay: 'How to Play' },
+    es: { tagline: '¡Corre. Escapa. Sobrevive!', selectMode: 'Modo de Juego:', playNow: '▶ CORRER AHORA', characters: 'Héroes', shop: 'Tienda', upgrades: 'Mejoras', missions: 'Misiones', achievements: 'Logros', dailyRewards: 'Premios Diarios', settings: 'Ajustes', howToPlay: 'Cómo Jugar' },
+    fr: { tagline: 'Courez. Échappez. Survivez !', selectMode: 'Mode de Jeu :', playNow: '▶ JOUER', characters: 'Héros', shop: 'Boutique', upgrades: 'Améliorations', missions: 'Missions', achievements: 'Succès', dailyRewards: 'Bonus Quotidien', settings: 'Options', howToPlay: 'Guide' },
+    hi: { tagline: 'दौड़ें। बचें। जीवित रहें!', selectMode: 'गेम मोड चुनें:', playNow: '▶ अभी दौड़ें', characters: 'पात्र', shop: 'दुकान', upgrades: 'अपग्रेड', missions: 'मिशन', achievements: 'उपलब्धियां', dailyRewards: 'दैनिक पुरस्कार', settings: 'सेटिंग्स', howToPlay: 'कैसे खेलें' },
+    pt: { tagline: 'Corra. Escape. Sobreviva!', selectMode: 'Modo de Jogo:', playNow: '▶ CORRER AGORA', characters: 'Heróis', shop: 'Loja', upgrades: 'Melhorias', missions: 'Missões', achievements: 'Conquistas', dailyRewards: 'Bônus Diário', settings: 'Opções', howToPlay: 'Como Jogar' }
+  };
+
+  /* =========================================================================
+   * 2. STATIC CATALOGS: CHARACTERS, CUSTOMIZATION, UPGRADES, SHOP, ACHIEVEMENTS
+   * ========================================================================= */
+  const CHARACTERS = [
+    { id: 'kaelen', name: 'Kaelen Vance', role: 'Jungle Explorer', cost: 0, currency: 'coins', color: 0xd48806, tunic: 0x2e7d32, hat: 'fedora', abilityName: 'Whip Dash', abilityDesc: '3.5s Speed Surge + Frontal Shield', passive: 'Balanced Agility' },
+    { id: 'lyra', name: 'Lyra Swift', role: 'Relic Hunter', cost: 1500, currency: 'coins', color: 0x18dcff, tunic: 0x00695c, hat: 'bandana', abilityName: 'Relic Magnet', abilityDesc: '8s Omni-Lane Coin Magnet', passive: '+20% Coin Value' },
+    { id: 'bram', name: 'Bram Ironheart', role: 'Temple Guardian', cost: 3500, currency: 'coins', color: 0xf5c542, tunic: 0x5d4037, hat: 'helmet', abilityName: 'Aegis Shockwave', abilityDesc: 'Shatters nearby obstacles + 6s Shield', passive: 'Starts every run with Shield' },
+    { id: 'nyx', name: 'Nyx Shadowstep', role: 'Shadow Rogue', cost: 40, currency: 'gems', color: 0x9b59b6, tunic: 0x2c2c54, hat: 'hood', abilityName: 'Shadow Phase', abilityDesc: '5.5s Complete Spectral Invincibility', passive: '+25% Slide Speed' },
+    { id: 'zara', name: 'Zara Ember', role: 'Pyromancer', cost: 6000, currency: 'coins', color: 0xff5252, tunic: 0x8b0000, hat: 'crown', abilityName: 'Flame Surge', abilityDesc: 'Blazing Boost + 3x Score Multiplier', passive: 'Immune to Fire & Lava Traps' },
+    { id: 'tarek', name: 'Tarek Stone', role: 'Ruins Scholar', cost: 75, currency: 'gems', color: 0x4cd137, tunic: 0x3d3d3d, hat: 'turban', abilityName: 'Alchemy Pulse', abilityDesc: 'Converts visible obstacles into Gold Coins', passive: '+35% Magic Gem Spawn Chance' },
+    { id: 'kiko', name: 'Kiko Gale', role: 'Wind Acrobat', cost: 25, currency: 'tokens', color: 0x00d2d3, tunic: 0x192a56, hat: 'headband', abilityName: 'Zephyr Leap', abilityDesc: '6s High-Altitude Mega Jump + Glide', passive: '+20% Jump Height' },
+    { id: 'orin', name: 'Orin Goldweaver', role: 'Ancient Sovereign', cost: 150, currency: 'gems', color: 0xffd700, tunic: 0xb8860b, hat: 'crest', abilityName: 'Sovereign Aura', abilityDesc: 'Magnet + Shield + 2x Coins for 7s', passive: 'Permanent +100% Score Multiplier' }
+  ];
+
+  const CUSTOMIZATIONS = [
+    { id: 'skin_classic', name: 'Classic Explorer', type: 'Skin', cost: 0, currency: 'coins', tint: null, desc: 'Standard adventurer attire.' },
+    { id: 'skin_golden', name: 'Golden Idol Coat', type: 'Skin', cost: 2500, currency: 'coins', tint: 0xffd700, desc: 'Pure metallic gold finish.' },
+    { id: 'skin_jade', name: 'Sacred Jade Armor', type: 'Outfit', cost: 3200, currency: 'coins', tint: 0x00e676, desc: 'Carved emerald temple armor.' },
+    { id: 'skin_spectral', name: 'Spectral Phantom', type: 'Skin', cost: 45, currency: 'gems', tint: 0x18dcff, desc: 'Glowing cyan spirit aura.' },
+    { id: 'skin_volcanic', name: 'Magma Obsidian', type: 'Outfit', cost: 60, currency: 'gems', tint: 0xff3d00, desc: 'Forged in the volcanic caverns.' },
+    { id: 'skin_royal', name: 'Blood Moon Regalia', type: 'Accessory', cost: 30, currency: 'tokens', tint: 0xff4dff, desc: 'Exclusive Event token regalia.' }
+  ];
+
+  const UPGRADES_DEF = [
+    { id: 'magnet', name: 'Coin Magnet Duration', icon: '🧲', baseCost: 250, currency: 'coins', desc: 'Extends automatic coin attraction timer.' },
+    { id: 'shield', name: 'Shield Duration', icon: '🛡️', baseCost: 300, currency: 'coins', desc: 'Increases protective barrier duration.' },
+    { id: 'speed', name: 'Speed Boost Duration', icon: '⚡', baseCost: 350, currency: 'coins', desc: 'Lengthens supersonic dash duration.' },
+    { id: 'multiplier', name: 'Coin Multiplier Duration', icon: '✖️', baseCost: 300, currency: 'coins', desc: 'Extends 2x coin collection window.' },
+    { id: 'megajump', name: 'Mega Jump Duration', icon: '🦘', baseCost: 250, currency: 'coins', desc: 'Increases high-jump booster duration.' },
+    { id: 'headstart', name: 'Starting Boost Distance', icon: '🚀', baseCost: 400, currency: 'coins', desc: 'Increases opening Head Start flight distance.' },
+    { id: 'gembonus', name: 'Gem Bonus Frequency', icon: '💎', baseCost: 15, currency: 'gems', desc: 'Boosts Magic Gem spawn probability.' },
+    { id: 'ability', name: 'Special Ability Cooldown', icon: '🌟', baseCost: 20, currency: 'gems', desc: 'Reduces Hero Special Ability recharge time.' }
+  ];
+
+  const SHOP_CATALOG = {
+    boosters: [
+      { id: 'item_headstart', name: 'Head Start Booster', icon: '🚀', price: 400, currency: 'coins', action: 'addHeadstart', desc: 'Launch 350m ahead at the start of a run with full protection.' },
+      { id: 'item_ankh', name: 'Resurrection Ankh', icon: '🏺', price: 12, currency: 'gems', action: 'addRevive', desc: 'Instant safe revival after crashing into an obstacle.' },
+      { id: 'item_scoreboost', name: 'Permanent +1x Score Relic', icon: '🔱', price: 2500, currency: 'coins', action: 'addScoreMult', desc: 'Permanently increases base score multiplier by +1x.' }
+    ],
+    chests: [
+      { id: 'chest_wooden', name: 'Explorer Wooden Chest', icon: '📦', price: 500, currency: 'coins', action: 'openWoodenChest', desc: 'Contains Coins (300-800), Gems (2-6), or Boosters.' },
+      { id: 'chest_golden', name: 'Ancient Golden Chest', icon: '👑', price: 25, currency: 'gems', action: 'openGoldenChest', desc: 'Guaranteed high Coins (1500+), Gems (10-30), and Ancient Tokens!' }
+    ],
+    exclusive: [
+      { id: 'excl_token_gem', name: 'Relic Gem Vault (50 Gems)', icon: '💠', price: 15, currency: 'tokens', action: 'buyGemPack', desc: 'Exchange 15 Ancient Event Tokens for 50 Magic Gems.' },
+      { id: 'excl_token_coin', name: 'Sovereign Treasury (10,000 Coins)', icon: '💰', price: 20, currency: 'tokens', action: 'buyCoinPack', desc: 'Exchange 20 Ancient Event Tokens for 10,000 Gold Coins.' }
+    ]
+  };
+
+  const ACHIEVEMENTS_DEF = [
+    { id: 'ach_first', name: 'First Run', icon: '🏁', desc: 'Complete your first temple escape run.', stat: 'totalRuns', target: 1, rewardCoins: 250 },
+    { id: 'ach_coin', name: 'Coin Collector', icon: '🪙', desc: 'Collect 2,500 cumulative Gold Coins.', stat: 'lifetimeCoins', target: 2500, rewardCoins: 600 },
+    { id: 'ach_treasure', name: 'Treasure Hunter', icon: '📦', desc: 'Collect or open 10 Treasure Chests.', stat: 'chestsOpened', target: 10, rewardCoins: 1000 },
+    { id: 'ach_distance', name: 'Long Distance Runner', icon: '🏃', desc: 'Reach 2,500 meters in a single run.', stat: 'bestDist', target: 2500, rewardCoins: 1200 },
+    { id: 'ach_jump', name: 'Jump Master', icon: '⬆️', desc: 'Jump over barriers 150 times.', stat: 'totalJumps', target: 150, rewardCoins: 500 },
+    { id: 'ach_slide', name: 'Slide Master', icon: '⬇️', desc: 'Slide under temple traps 120 times.', stat: 'totalSlides', target: 120, rewardCoins: 500 },
+    { id: 'ach_powerup', name: 'Power-Up Expert', icon: '⚡', desc: 'Activate 40 Power-Ups during runs.', stat: 'totalPowerups', target: 40, rewardCoins: 800 },
+    { id: 'ach_gem', name: 'Gem Collector', icon: '💎', desc: 'Collect 50 Magic Gems.', stat: 'lifetimeGems', target: 50, rewardCoins: 1500 },
+    { id: 'ach_survival', name: 'Survival Expert', icon: '🛡️', desc: 'Run 15,000 total cumulative meters.', stat: 'totalDist', target: 15000, rewardCoins: 2000 },
+    { id: 'ach_millionaire', name: 'Millionaire Collector', icon: '👑', desc: 'Accumulate 25,000 lifetime Gold Coins.', stat: 'lifetimeCoins', target: 25000, rewardCoins: 5000 }
+  ];
+
+  const DAILY_REWARDS_DEF = [
+    { day: 1, label: 'Day 1', rewardText: '400 Gold Coins', type: 'coins', amount: 400, icon: '🪙' },
+    { day: 2, label: 'Day 2', rewardText: '750 Gold Coins', type: 'coins', amount: 750, icon: '💰' },
+    { day: 3, label: 'Day 3', rewardText: '12 Magic Gems', type: 'gems', amount: 12, icon: '💎' },
+    { day: 4, label: 'Day 4', rewardText: '2 Head Start Boosters', type: 'headstarts', amount: 2, icon: '🚀' },
+    { day: 5, label: 'Day 5', rewardText: '1,500 Gold Coins', type: 'coins', amount: 1500, icon: '🪙' },
+    { day: 6, label: 'Day 6', rewardText: '10 Ancient Tokens', type: 'tokens', amount: 10, icon: '🏺' },
+    { day: 7, label: 'Day 7', rewardText: 'Grand Golden Chest', type: 'chest', amount: 1, icon: '👑' }
+  ];
+
+  /* =========================================================================
+   * 3. SAVE SYSTEM WITH SCHEMA VALIDATION & RECOVERY DEFAULTS
+   * ========================================================================= */
+  const STORAGE_KEY = 'GAMERKIE_JUNGLE_RUSH_SAVE_V1';
+
+  function getDefaultSave() {
+    return {
+      version: 1,
+      coins: 500,
+      gems: 15,
+      tokens: 5,
+      bestScore: 0,
+      bestDist: 0,
+      totalDist: 0,
+      totalRuns: 0,
+      lifetimeCoins: 500,
+      lifetimeGems: 15,
+      totalJumps: 0,
+      totalSlides: 0,
+      totalPowerups: 0,
+      chestsOpened: 0,
+      baseMultiplier: 1,
+      headstarts: 1,
+      reviveAnkhs: 1,
+      unlockedChars: ['kaelen'],
+      selectedChar: 'kaelen',
+      unlockedSkins: ['skin_classic'],
+      selectedSkin: 'skin_classic',
+      upgrades: { magnet: 1, shield: 1, speed: 1, multiplier: 1, megajump: 1, headstart: 1, gembonus: 1, ability: 1 },
+      achievementsClaimed: [],
+      dailyStreak: 1,
+      lastLoginDate: '',
+      dailyClaimedDay: 0,
+      missions: [
+        { id: 'm1', desc: 'Collect 150 Gold Coins', type: 'coins', progress: 0, target: 150, reward: 300, tier: 1 },
+        { id: 'm2', desc: 'Run 500 Meters', type: 'dist', progress: 0, target: 500, reward: 350, tier: 1 },
+        { id: 'm3', desc: 'Jump 20 Times', type: 'jumps', progress: 0, target: 20, reward: 250, tier: 1 }
+      ],
+      dailyChallenges: {
+        dayStamp: '',
+        items: [
+          { id: 'dc1', desc: 'Collect 100 Coins in One Run', type: 'singleCoins', progress: 0, target: 100, rewardTokens: 4, claimed: false },
+          { id: 'dc2', desc: 'Slide 15 Times Today', type: 'slides', progress: 0, target: 15, rewardTokens: 4, claimed: false },
+          { id: 'dc3', desc: 'Collect 3 Magic Gems Today', type: 'gems', progress: 0, target: 3, rewardTokens: 6, claimed: false }
+        ]
+      },
+      weeklyChallenges: [
+        { id: 'wc1', desc: 'Run 5,000 Cumulative Meters', type: 'dist', progress: 0, target: 5000, rewardGems: 25, claimed: false },
+        { id: 'wc2', desc: 'Use 15 Power-Ups', type: 'powerups', progress: 0, target: 15, rewardGems: 20, claimed: false }
+      ],
+      settings: {
+        musicOn: true,
+        musicVol: 65,
+        sfxOn: true,
+        sfxVol: 85,
+        graphics: 'high',
+        camSens: 8,
+        language: 'en',
+        vibration: true,
+        perfMode: false
+      }
+    };
+  }
+
+  let saveData = loadGameData();
+
+  function loadGameData() {
+    const def = getDefaultSave();
+    try {
+      const raw = localStorage.getItem(STORAGE_KEY);
+      if (!raw) return def;
+      const parsed = JSON.parse(raw);
+      if (!parsed || typeof parsed !== 'object') return def;
+      const merged = Object.assign({}, def, parsed);
+      merged.upgrades = Object.assign({}, def.upgrades, parsed.upgrades || {});
+      merged.settings = Object.assign({}, def.settings, parsed.settings || {});
+      if (!Array.isArray(merged.unlockedChars) || merged.unlockedChars.length === 0) merged.unlockedChars = ['kaelen'];
+      if (!Array.isArray(merged.missions) || merged.missions.length < 3) merged.missions = def.missions;
+      // Validate numeric fields against NaN
+      ['coins', 'gems', 'tokens', 'bestScore', 'bestDist', 'totalDist', 'totalRuns'].forEach(k => {
+        if (typeof merged[k] !== 'number' || isNaN(merged[k]) || merged[k] < 0) merged[k] = def[k];
+      });
+      return merged;
+    } catch (e) {
+      return def;
+    }
+  }
+
+  function saveGameData() {
+    try {
+      localStorage.setItem(STORAGE_KEY, JSON.stringify(saveData));
+    } catch (e) {
+      // Quota or private browsing fallback
+    }
+    refreshMenuUI();
+  }
+
+  function checkDailyReset() {
+    const todayStr = new Date().toISOString().slice(0, 10);
+    if (saveData.dailyChallenges.dayStamp !== todayStr) {
+      saveData.dailyChallenges.dayStamp = todayStr;
+      saveData.dailyChallenges.items.forEach(it => {
+        it.progress = 0;
+        it.claimed = false;
+      });
+      saveGameData();
+    }
+  }
+  checkDailyReset();
+
+  /* =========================================================================
+   * 4. PROCEDURAL WEB AUDIO SYNTHESIZER (MUSIC & SFX)
+   * ========================================================================= */
+  class ProceduralAudioEngine {
+    constructor() {
+      this.ctx = null;
+      this.noiseBuffer = null;
+      this.musicTimer = null;
+      this.beatStep = 0;
+      this.isPlayingMusic = false;
+    }
+
+    init() {
+      if (!this.ctx) {
+        const AudioCtx = window.AudioContext || window.webkitAudioContext;
+        if (AudioCtx) {
+          this.ctx = new AudioCtx();
+          this.createNoiseBuffer();
+        }
+      }
+      if (this.ctx && this.ctx.state === 'suspended') {
+        this.ctx.resume();
+      }
+    }
+
+    createNoiseBuffer() {
+      if (!this.ctx) return;
+      const bufferSize = this.ctx.sampleRate * 1.5;
+      this.noiseBuffer = this.ctx.createBuffer(1, bufferSize, this.ctx.sampleRate);
+      const data = this.noiseBuffer.getChannelData(0);
+      for (let i = 0; i < bufferSize; i++) {
+        data[i] = Math.random() * 2 - 1;
+      }
+    }
+
+    get sfxGainVal() {
+      return saveData.settings.sfxOn ? (saveData.settings.sfxVol / 100) * 0.45 : 0;
+    }
+
+    get musicGainVal() {
+      return saveData.settings.musicOn ? (saveData.settings.musicVol / 100) * 0.22 : 0;
+    }
+
+    playTone(freq, endFreq, duration, type = 'sine', volScale = 1) {
+      if (!this.ctx || !saveData.settings.sfxOn) return;
+      const now = this.ctx.currentTime;
+      const osc = this.ctx.createOscillator();
+      const gain = this.ctx.createGain();
+      osc.type = type;
+      osc.frequency.setValueAtTime(freq, now);
+      if (endFreq && endFreq !== freq) {
+        osc.frequency.exponentialRampToValueAtTime(Math.max(20, endFreq), now + duration);
+      }
+      const v = Math.max(0.001, this.sfxGainVal * volScale);
+      gain.gain.setValueAtTime(v, now);
+      gain.gain.exponentialRampToValueAtTime(0.001, now + duration);
+      osc.connect(gain);
+      gain.connect(this.ctx.destination);
+      osc.start(now);
+      osc.stop(now + duration);
+    }
+
+    playNoise(duration, filterFreq = 1200, filterType = 'bandpass', volScale = 1) {
+      if (!this.ctx || !this.noiseBuffer || !saveData.settings.sfxOn) return;
+      const now = this.ctx.currentTime;
+      const src = this.ctx.createBufferSource();
+      src.buffer = this.noiseBuffer;
+      const filter = this.ctx.createBiquadFilter();
+      filter.type = filterType;
+      filter.frequency.setValueAtTime(filterFreq, now);
+      const gain = this.ctx.createGain();
+      const v = Math.max(0.001, this.sfxGainVal * volScale);
+      gain.gain.setValueAtTime(v, now);
+      gain.gain.exponentialRampToValueAtTime(0.001, now + duration);
+      src.connect(filter);
+      filter.connect(gain);
+      gain.connect(this.ctx.destination);
+      src.start(now);
+      src.stop(now + duration);
+    }
+
+    sfxClick() { this.playTone(520, 780, 0.06, 'triangle', 0.6); }
+    sfxCoin() {
+      this.playTone(987.77, 1318.5, 0.11, 'sine', 0.7);
+    }
+    sfxGem() {
+      this.playTone(1046.5, 1567.98, 0.14, 'triangle', 0.85);
+      setTimeout(() => this.playTone(1567.98, 2093.0, 0.18, 'sine', 0.8), 60);
+    }
+    sfxJump() {
+      this.playTone(180, 480, 0.18, 'sine', 0.75);
+      this.playNoise(0.1, 900, 'bandpass', 0.35);
+    }
+    sfxSlide() {
+      this.playNoise(0.22, 650, 'bandpass', 0.65);
+      this.playTone(260, 110, 0.16, 'triangle', 0.4);
+    }
+    sfxStep() {
+      this.playNoise(0.045, 420, 'lowpass', 0.28);
+    }
+    sfxPowerup() {
+      [440, 554.37, 659.25, 880].forEach((f, i) => {
+        setTimeout(() => this.playTone(f, f * 1.15, 0.14, 'triangle', 0.75), i * 55);
+      });
+    }
+    sfxTreasure() {
+      [523.25, 659.25, 783.99, 1046.5].forEach((f, i) => {
+        setTimeout(() => this.playTone(f, f * 1.05, 0.22, 'sawtooth', 0.6), i * 75);
+      });
+    }
+    sfxCrash() {
+      this.playTone(140, 32, 0.45, 'sawtooth', 1.1);
+      this.playNoise(0.38, 350, 'lowpass', 1.1);
+    }
+    sfxGameOver() {
+      [392, 349.23, 329.63, 261.63].forEach((f, i) => {
+        setTimeout(() => this.playTone(f, f * 0.96, 0.28, 'triangle', 0.8), i * 160);
+      });
+    }
+
+    startMusic() {
+      this.init();
+      if (this.isPlayingMusic) return;
+      this.isPlayingMusic = true;
+      const marimbaScale = [220, 261.63, 293.66, 329.63, 392.0, 440.0, 523.25];
+      const pattern = [0, 2, 4, 3, 5, 4, 2, 1];
+      this.musicTimer = setInterval(() => {
+        if (!this.ctx || !saveData.settings.musicOn || document.hidden) return;
+        const mv = this.musicGainVal;
+        if (mv <= 0.001) return;
+        const now = this.ctx.currentTime;
+        const step = this.beatStep % 8;
+
+        // Tribal Kick on 0, 3, 6
+        if (step === 0 || step === 3 || step === 6) {
+          const osc = this.ctx.createOscillator();
+          const g = this.ctx.createGain();
+          osc.type = 'sine';
+          osc.frequency.setValueAtTime(135, now);
+          osc.frequency.exponentialRampToValueAtTime(38, now + 0.09);
+          g.gain.setValueAtTime(mv * 1.3, now);
+          g.gain.exponentialRampToValueAtTime(0.001, now + 0.14);
+          osc.connect(g);
+          g.connect(this.ctx.destination);
+          osc.start(now);
+          osc.stop(now + 0.14);
+        }
+
+        // Wooden Marimba Melody
+        if (step % 2 === 0 || step === 5) {
+          const osc = this.ctx.createOscillator();
+          const g = this.ctx.createGain();
+          osc.type = 'triangle';
+          const note = marimbaScale[pattern[step]];
+          osc.frequency.setValueAtTime(note, now);
+          g.gain.setValueAtTime(mv * 0.65, now);
+          g.gain.exponentialRampToValueAtTime(0.001, now + 0.16);
+          osc.connect(g);
+          g.connect(this.ctx.destination);
+          osc.start(now);
+          osc.stop(now + 0.16);
+        }
+        this.beatStep++;
+      }, 190);
+    }
+
+    stopMusic() {
+      this.isPlayingMusic = false;
+      if (this.musicTimer) {
+        clearInterval(this.musicTimer);
+        this.musicTimer = null;
+      }
+    }
+  }
+
+  const audio = new ProceduralAudioEngine();
+
+  function vibrate(ms) {
+    if (saveData.settings.vibration && navigator.vibrate) {
+      try { navigator.vibrate(ms); } catch (e) {}
+    }
+  }
+
+  /* =========================================================================
+   * 5. THREE.JS 3D WORLD, BIOMES, HIERARCHICAL RIGS & OBJECT POOLS
+   * ========================================================================= */
+  const LANE_WIDTH = 2.6;
+  const LANES = [-LANE_WIDTH, 0, LANE_WIDTH];
+  const SEGMENT_LENGTH = 20;
+  const NUM_SEGMENTS = 14;
+
+  const BIOMES = [
+    { name: 'ANCIENT JUNGLE TEMPLE', fogColor: 0x0b2416, skyColor: 0x133b24, pathColor: 0x4a554c, sideColor: 0x163822, lightColor: 0xffe4a0 },
+    { name: 'RIVER & WATERFALL GORGE', fogColor: 0x0a232e, skyColor: 0x15485c, pathColor: 0x5c4328, sideColor: 0x0f4c5c, lightColor: 0xc8f4ff },
+    { name: 'VOLCANIC LAVA CAVERNS', fogColor: 0x260b07, skyColor: 0x3d1109, pathColor: 0x2b2626, sideColor: 0xc23616, lightColor: 0xff7f50 },
+    { name: 'SUNKEN UNDERGROUND RUINS', fogColor: 0x0c102b, skyColor: 0x161d47, pathColor: 0x3c405c, sideColor: 0x192a56, lightColor: 0x70a1ff },
+    { name: 'GOLDEN TREASURE SANCTUM', fogColor: 0x291f08, skyColor: 0x4a370d, pathColor: 0x6e5725, sideColor: 0x8c6d1f, lightColor: 0xffd700 }
+  ];
+
+  const OBSTACLE_TYPES = [
+    'stone_wall', 'fallen_tree', 'fire_trap', 'moving_barrier', 'spikes', 'deep_gap',
+    'broken_bridge', 'rolling_rock', 'low_branch', 'ancient_gate', 'moving_platform',
+    'water_obstacle', 'lava_pit', 'falling_stone', 'rotating_trap', 'swinging_axe',
+    'collapsing_path', 'narrow_bridge'
+  ];
+
+  const POWERUP_TYPES = [
+    { id: 'magnet', name: 'Coin Magnet', color: 0x18dcff },
+    { id: 'speed', name: 'Speed Boost', color: 0xf5c542 },
+    { id: 'shield', name: 'Shield', color: 0x2ecc71 },
+    { id: 'megajump', name: 'Mega Jump', color: 0x00e676 },
+    { id: 'multiplier', name: '2x Coin Multiplier', color: 0xff9f43 },
+    { id: 'gembonus', name: 'Gem Bonus', color: 0xff4dff },
+    { id: 'invincibility', name: 'Invincibility', color: 0x9b59b6 },
+    { id: 'scorebooster', name: 'Score Booster', color: 0xeccc68 }
+  ];
+
+  const container = document.getElementById('jr-canvas-container');
+  const scene = new THREE.Scene();
+  scene.background = new THREE.Color(BIOMES[0].skyColor);
+  scene.fog = new THREE.FogExp2(BIOMES[0].fogColor, 0.014);
+
+  const camera = new THREE.PerspectiveCamera(62, window.innerWidth / window.innerHeight, 0.1, 220);
+  camera.position.set(0, 4.6, 7.2);
+
+  const renderer = new THREE.WebGLRenderer({ antialias: true, powerPreference: 'high-performance' });
+  renderer.setSize(window.innerWidth, window.innerHeight);
+  renderer.setPixelRatio(Math.min(window.devicePixelRatio || 1, 1.75));
+  renderer.shadowMap.enabled = true;
+  renderer.shadowMap.type = THREE.PCFSoftShadowMap;
+  container.appendChild(renderer.domElement);
+
+  // Lights (Fixed count to prevent Three.js material shader recompilation)
+  const hemiLight = new THREE.HemisphereLight(0xdff9fb, 0x1e3726, 0.75);
+  scene.add(hemiLight);
+
+  const dirLight = new THREE.DirectionalLight(0xffeaa7, 0.95);
+  dirLight.position.set(18, 36, 20);
+  dirLight.castShadow = true;
+  dirLight.shadow.mapSize.width = 1024;
+  dirLight.shadow.mapSize.height = 1024;
+  dirLight.shadow.camera.near = 1;
+  dirLight.shadow.camera.far = 110;
+  const dCam = 24;
+  dirLight.shadow.camera.left = -dCam;
+  dirLight.shadow.camera.right = dCam;
+  dirLight.shadow.camera.top = dCam;
+  dirLight.shadow.camera.bottom = -dCam;
+  scene.add(dirLight);
+
+  const torchLightLeft = new THREE.PointLight(0xff7f50, 1.1, 18);
+  torchLightLeft.position.set(-5.5, 4, -12);
+  scene.add(torchLightLeft);
+
+  const torchLightRight = new THREE.PointLight(0xff7f50, 1.1, 18);
+  torchLightRight.position.set(5.5, 4, -26);
+  scene.add(torchLightRight);
+
+  // Shared Materials Cache
+  const MATS = {
+    path: new THREE.MeshStandardMaterial({ color: BIOMES[0].pathColor, roughness: 0.85 }),
+    curb: new THREE.MeshStandardMaterial({ color: 0xc8a45d, roughness: 0.65, metalness: 0.2 }),
+    side: new THREE.MeshStandardMaterial({ color: BIOMES[0].sideColor, roughness: 0.9 }),
+    pillar: new THREE.MeshStandardMaterial({ color: 0x576058, roughness: 0.8 }),
+    vine: new THREE.MeshStandardMaterial({ color: 0x2ecc71, roughness: 0.7 }),
+    wood: new THREE.MeshStandardMaterial({ color: 0x6d4c41, roughness: 0.85 }),
+    stone: new THREE.MeshStandardMaterial({ color: 0x7f8c8d, roughness: 0.75 }),
+    fire: new THREE.MeshBasicMaterial({ color: 0xff5252 }),
+    lava: new THREE.MeshBasicMaterial({ color: 0xff3d00 }),
+    water: new THREE.MeshStandardMaterial({ color: 0x00a8ff, roughness: 0.2, metalness: 0.4 }),
+    gold: new THREE.MeshStandardMaterial({ color: 0xffd700, metalness: 0.75, roughness: 0.25 }),
+    gem: new THREE.MeshStandardMaterial({ color: 0x18dcff, emissive: 0x006266, metalness: 0.4, roughness: 0.15 }),
+    token: new THREE.MeshStandardMaterial({ color: 0xff4dff, emissive: 0x6f1e51, metalness: 0.5, roughness: 0.2 }),
+    metal: new THREE.MeshStandardMaterial({ color: 0xbdc3c7, metalness: 0.8, roughness: 0.3 }),
+    voidMat: new THREE.MeshBasicMaterial({ color: 0x030705 })
+  };
+
+  /* =========================================================================
+   * 6. HIERARCHICAL PLAYER & GUARDIAN MONSTER RIGS
+   * ========================================================================= */
+  function createHumanoidRig() {
+    const root = new THREE.Group();
+    const bodyPivot = new THREE.Group();
+    root.add(bodyPivot);
+
+    const torsoMat = new THREE.MeshStandardMaterial({ color: 0x2e7d32, roughness: 0.6 });
+    const skinMat = new THREE.MeshStandardMaterial({ color: 0xe0ac69, roughness: 0.6 });
+    const pantsMat = new THREE.MeshStandardMaterial({ color: 0x4e342e, roughness: 0.7 });
+    const accentMat = new THREE.MeshStandardMaterial({ color: 0xd48806, metalness: 0.4, roughness: 0.4 });
+
+    const torso = new THREE.Mesh(new THREE.BoxGeometry(0.75, 0.9, 0.42), torsoMat);
+    torso.position.y = 1.15;
+    torso.castShadow = true;
+    bodyPivot.add(torso);
+
+    // Backpack Relic
+    const pack = new THREE.Mesh(new THREE.BoxGeometry(0.5, 0.6, 0.28), accentMat);
+    pack.position.set(0, 1.18, 0.28);
+    bodyPivot.add(pack);
+
+    // Head + Hat
+    const headPivot = new THREE.Group();
+    headPivot.position.set(0, 1.78, 0);
+    const head = new THREE.Mesh(new THREE.BoxGeometry(0.5, 0.5, 0.5), skinMat);
+    head.castShadow = true;
+    headPivot.add(head);
+
+    const hatBrim = new THREE.Mesh(new THREE.CylinderGeometry(0.45, 0.45, 0.08, 12), accentMat);
+    hatBrim.position.y = 0.26;
+    const hatCrown = new THREE.Mesh(new THREE.CylinderGeometry(0.26, 0.3, 0.25, 12), accentMat);
+    hatCrown.position.y = 0.38;
+    headPivot.add(hatBrim, hatCrown);
+    bodyPivot.add(headPivot);
+
+    // Limbs
+    function makeLimb(w, h, d, mat, x, y) {
+      const pivot = new THREE.Group();
+      pivot.position.set(x, y, 0);
+      const mesh = new THREE.Mesh(new THREE.BoxGeometry(w, h, d), mat);
+      mesh.position.y = -h / 2;
+      mesh.castShadow = true;
+      pivot.add(mesh);
+      bodyPivot.add(pivot);
+      return pivot;
+    }
+
+    const leftArm = makeLimb(0.24, 0.72, 0.24, skinMat, -0.52, 1.52);
+    const rightArm = makeLimb(0.24, 0.72, 0.24, skinMat, 0.52, 1.52);
+    const leftLeg = makeLimb(0.28, 0.75, 0.28, pantsMat, -0.2, 0.75);
+    const rightLeg = makeLimb(0.28, 0.75, 0.28, pantsMat, 0.2, 0.75);
+
+    // Shield Aura Sphere
+    const shieldMesh = new THREE.Mesh(
+      new THREE.SphereGeometry(1.35, 16, 16),
+      new THREE.MeshBasicMaterial({ color: 0x2ecc71, wireframe: true, transparent: true, opacity: 0.45 })
+    );
+    shieldMesh.position.y = 1.1;
+    shieldMesh.visible = false;
+    root.add(shieldMesh);
+
+    // Magnet Ring
+    const magnetRing = new THREE.Mesh(
+      new THREE.TorusGeometry(1.1, 0.06, 8, 24),
+      new THREE.MeshBasicMaterial({ color: 0x18dcff })
+    );
+    magnetRing.rotation.x = Math.PI / 2;
+    magnetRing.position.y = 1.0;
+    magnetRing.visible = false;
+    root.add(magnetRing);
+
+    return {
+      root, bodyPivot, torsoMat, accentMat, leftArm, rightArm, leftLeg, rightLeg, shieldMesh, magnetRing
+    };
+  }
+
+  function createMonsterRig() {
+    const root = new THREE.Group();
+    const darkMat = new THREE.MeshStandardMaterial({ color: 0x1e272e, roughness: 0.9 });
+    const eyeMat = new THREE.MeshBasicMaterial({ color: 0xff3f34 });
+    const hornMat = new THREE.MeshStandardMaterial({ color: 0xd2dae2, roughness: 0.4 });
+
+    const torso = new THREE.Mesh(new THREE.BoxGeometry(1.5, 1.4, 0.9), darkMat);
+    torso.position.y = 1.6;
+    root.add(torso);
+
+    const head = new THREE.Mesh(new THREE.BoxGeometry(0.95, 0.85, 0.95), darkMat);
+    head.position.set(0, 2.55, -0.15);
+    const eyeL = new THREE.Mesh(new THREE.BoxGeometry(0.18, 0.12, 0.1), eyeMat);
+    eyeL.position.set(-0.24, 0.1, -0.48);
+    const eyeR = eyeL.clone();
+    eyeR.position.x = 0.24;
+    const hornL = new THREE.Mesh(new THREE.ConeGeometry(0.14, 0.6, 8), hornMat);
+    hornL.position.set(-0.42, 0.55, 0);
+    hornL.rotation.z = 0.35;
+    const hornR = hornL.clone();
+    hornR.position.x = 0.42;
+    hornR.rotation.z = -0.35;
+    head.add(eyeL, eyeR, hornL, hornR);
+    root.add(head);
+
+    const armL = new THREE.Mesh(new THREE.BoxGeometry(0.42, 1.2, 0.42), darkMat);
+    armL.position.set(-1.05, 1.6, -0.2);
+    const armR = armL.clone();
+    armR.position.x = 1.05;
+    const legL = new THREE.Mesh(new THREE.BoxGeometry(0.48, 1.0, 0.48), darkMat);
+    legL.position.set(-0.42, 0.55, 0);
+    const legR = legL.clone();
+    legR.position.x = 0.42;
+    root.add(armL, armR, legL, legR);
+
+    return { root, armL, armR, legL, legR, head };
+  }
+
+  const playerRig = createHumanoidRig();
+  scene.add(playerRig.root);
+
+  const monsterRig = createMonsterRig();
+  monsterRig.root.position.set(0, 0, 4.2);
+  scene.add(monsterRig.root);
+
+  function applySelectedHeroAppearance() {
+    const hero = CHARACTERS.find(c => c.id === saveData.selectedChar) || CHARACTERS[0];
+    const skin = CUSTOMIZATIONS.find(s => s.id === saveData.selectedSkin) || CUSTOMIZATIONS[0];
+    playerRig.torsoMat.color.setHex(skin.tint ? skin.tint : hero.tunic);
+    playerRig.accentMat.color.setHex(hero.color);
+  }
+  applySelectedHeroAppearance();
+
+  /* =========================================================================
+   * 7. TRACK RING-BUFFER, OBSTACLE POOL & COLLECTIBLE POOL
+   * ========================================================================= */
+  const trackSegments = [];
+  for (let i = 0; i < NUM_SEGMENTS; i++) {
+    const segGroup = new THREE.Group();
+    const floor = new THREE.Mesh(new THREE.BoxGeometry(9.6, 0.6, SEGMENT_LENGTH), MATS.path);
+    floor.position.y = -0.3;
+    floor.receiveShadow = true;
+    segGroup.add(floor);
+
+    const curbL = new THREE.Mesh(new THREE.BoxGeometry(0.55, 0.35, SEGMENT_LENGTH), MATS.curb);
+    curbL.position.set(-4.8, 0.12, 0);
+    const curbR = curbL.clone();
+    curbR.position.x = 4.8;
+    segGroup.add(curbL, curbR);
+
+    const bankL = new THREE.Mesh(new THREE.BoxGeometry(18, 1.2, SEGMENT_LENGTH), MATS.side);
+    bankL.position.set(-14, -0.6, 0);
+    const bankR = bankL.clone();
+    bankR.position.x = 14;
+    segGroup.add(bankL, bankR);
+
+    // Temple Pillars & Jungle Trees on sides
+    for (let side of [-1, 1]) {
+      const pillar = new THREE.Mesh(new THREE.BoxGeometry(1.2, 6.5, 1.2), MATS.pillar);
+      pillar.position.set(side * 6.8, 3.0, -4);
+      pillar.castShadow = true;
+      segGroup.add(pillar);
+
+      const canopy = new THREE.Mesh(new THREE.ConeGeometry(2.6, 4.5, 7), MATS.vine);
+      canopy.position.set(side * 9.5, 4.2, 4);
+      segGroup.add(canopy);
+    }
+
+    // Overhead Temple Arch & Hanging Vine every 2nd segment
+    if (i % 2 === 0) {
+      const beam = new THREE.Mesh(new THREE.BoxGeometry(14.8, 1.1, 1.2), MATS.pillar);
+      beam.position.set(0, 6.4, -4);
+      segGroup.add(beam);
+    }
+
+    segGroup.position.z = -i * SEGMENT_LENGTH;
+    scene.add(segGroup);
+    trackSegments.push({ group: segGroup, floor });
+  }
+
+  // Build Pooled Obstacles (40 reusable multi-purpose obstacle containers)
+  const obstaclePool = [];
+  const activeObstacles = [];
+
+  function buildObstacleMeshByType(type) {
+    const group = new THREE.Group();
+    if (type === 'stone_wall') {
+      const m = new THREE.Mesh(new THREE.BoxGeometry(2.2, 2.5, 0.9), MATS.stone);
+      m.position.y = 1.25;
+      m.castShadow = true;
+      group.add(m);
+    } else if (type === 'fallen_tree') {
+      const m = new THREE.Mesh(new THREE.CylinderGeometry(0.42, 0.48, 2.3, 8), MATS.wood);
+      m.rotation.z = Math.PI / 2;
+      m.position.y = 0.55;
+      m.castShadow = true;
+      group.add(m);
+    } else if (type === 'fire_trap') {
+      const base = new THREE.Mesh(new THREE.CylinderGeometry(0.7, 0.85, 0.25, 10), MATS.stone);
+      base.position.y = 0.12;
+      const flame = new THREE.Mesh(new THREE.ConeGeometry(0.55, 1.35, 8), MATS.fire);
+      flame.position.y = 0.8;
+      group.add(base, flame);
+    } else if (type === 'moving_barrier') {
+      const m = new THREE.Mesh(new THREE.BoxGeometry(2.0, 1.9, 0.7), MATS.curb);
+      m.position.y = 0.95;
+      group.add(m);
+    } else if (type === 'spikes') {
+      for (let k = -0.6; k <= 0.6; k += 0.6) {
+        const s = new THREE.Mesh(new THREE.ConeGeometry(0.24, 0.95, 6), MATS.metal);
+        s.position.set(k, 0.48, 0);
+        group.add(s);
+      }
+    } else if (type === 'deep_gap' || type === 'broken_bridge') {
+      const voidSlab = new THREE.Mesh(new THREE.BoxGeometry(2.4, 0.12, 3.2), MATS.voidMat);
+      voidSlab.position.y = 0.03;
+      group.add(voidSlab);
+    } else if (type === 'rolling_rock') {
+      const rock = new THREE.Mesh(new THREE.DodecahedronGeometry(1.05, 1), MATS.stone);
+      rock.position.y = 1.05;
+      rock.castShadow = true;
+      group.add(rock);
+    } else if (type === 'low_branch' || type === 'ancient_gate') {
+      const bar = new THREE.Mesh(
+        new THREE.BoxGeometry(2.4, 1.4, 0.7),
+        type === 'low_branch' ? MATS.wood : MATS.stone
+      );
+      bar.position.y = 1.85; // Bottom sits at 1.15m -> slide under
+      const postL = new THREE.Mesh(new THREE.BoxGeometry(0.25, 2.5, 0.25), MATS.wood);
+      postL.position.set(-1.1, 1.25, 0);
+      const postR = postL.clone();
+      postR.position.x = 1.1;
+      group.add(bar, postL, postR);
+    } else if (type === 'moving_platform') {
+      const pit = new THREE.Mesh(new THREE.BoxGeometry(2.4, 0.1, 3.0), MATS.voidMat);
+      pit.position.y = 0.02;
+      const bar = new THREE.Mesh(new THREE.BoxGeometry(2.1, 0.95, 0.8), MATS.curb);
+      bar.position.y = 0.48;
+      group.add(pit, bar);
+    } else if (type === 'water_obstacle') {
+      const w = new THREE.Mesh(new THREE.BoxGeometry(2.3, 0.75, 2.4), MATS.water);
+      w.position.y = 0.38;
+      group.add(w);
+    } else if (type === 'lava_pit') {
+      const l = new THREE.Mesh(new THREE.BoxGeometry(2.3, 0.65, 2.6), MATS.lava);
+      l.position.y = 0.32;
+      group.add(l);
+    } else if (type === 'falling_stone') {
+      const st = new THREE.Mesh(new THREE.BoxGeometry(1.7, 1.7, 1.7), MATS.stone);
+      st.position.y = 0.85;
+      group.add(st);
+    } else if (type === 'rotating_trap') {
+      const post = new THREE.Mesh(new THREE.CylinderGeometry(0.35, 0.35, 2.2, 8), MATS.metal);
+      post.position.y = 1.1;
+      const blade = new THREE.Mesh(new THREE.BoxGeometry(2.3, 0.35, 0.35), MATS.curb);
+      blade.position.y = 0.65;
+      group.add(post, blade);
+    } else if (type === 'swinging_axe') {
+      const pivot = new THREE.Mesh(new THREE.BoxGeometry(2.2, 1.2, 0.25), MATS.metal);
+      pivot.position.y = 1.75; // Overhead pendulum -> slide under
+      group.add(pivot);
+    } else if (type === 'collapsing_path' || type === 'narrow_bridge') {
+      const hazard = new THREE.Mesh(new THREE.BoxGeometry(2.2, 0.9, 2.0), MATS.voidMat);
+      hazard.position.y = 0.45;
+      group.add(hazard);
+    }
+    return group;
+  }
+
+  // Pre-allocate 36 obstacle slots (2 of each of the 18 types)
+  OBSTACLE_TYPES.forEach(type => {
+    for (let k = 0; k < 2; k++) {
+      const mesh = buildObstacleMeshByType(type);
+      mesh.visible = false;
+      scene.add(mesh);
+      obstaclePool.push({
+        type,
+        mesh,
+        active: false,
+        lane: 0,
+        baseX: 0,
+        phase: Math.random() * Math.PI * 2
+      });
+    }
+  });
+
+  // Collectibles Pool (Coins, Gems, Tokens, Chests, Power-ups)
+  const collectiblePool = [];
+  const activeCollectibles = [];
+  const coinGeo = new THREE.CylinderGeometry(0.42, 0.42, 0.12, 12);
+  coinGeo.rotateX(Math.PI / 2);
+  const gemGeo = new THREE.OctahedronGeometry(0.48, 0);
+  const chestGeo = new THREE.BoxGeometry(0.95, 0.75, 0.75);
+
+  for (let i = 0; i < 65; i++) {
+    const kind = i < 48 ? 'coin' : (i < 55 ? 'gem' : (i < 58 ? 'token' : (i < 61 ? 'chest' : 'powerup')));
+    let mesh;
+    if (kind === 'coin') mesh = new THREE.Mesh(coinGeo, MATS.gold);
+    else if (kind === 'gem') mesh = new THREE.Mesh(gemGeo, MATS.gem);
+    else if (kind === 'token') mesh = new THREE.Mesh(gemGeo, MATS.token);
+    else if (kind === 'chest') mesh = new THREE.Mesh(chestGeo, MATS.gold);
+    else mesh = new THREE.Mesh(new THREE.TorusGeometry(0.45, 0.14, 8, 16), MATS.gem);
+
+    mesh.visible = false;
+    scene.add(mesh);
+    collectiblePool.push({ kind, mesh, active: false, lane: 0, pwId: 'magnet' });
+  }
+
+  // Weather & Atmospheric Particle System (Rain / Embers / Spores)
+  const PARTICLE_COUNT = 260;
+  const partGeo = new THREE.BufferGeometry();
+  const partPos = new Float32Array(PARTICLE_COUNT * 3);
+  for (let i = 0; i < PARTICLE_COUNT; i++) {
+    partPos[i * 3] = (Math.random() - 0.5) * 28;
+    partPos[i * 3 + 1] = Math.random() * 16;
+    partPos[i * 3 + 2] = -Math.random() * 90;
+  }
+  partGeo.setAttribute('position', new THREE.BufferAttribute(partPos, 3));
+  const partMat = new THREE.PointsMaterial({ color: 0xffeaa7, size: 0.22, transparent: true, opacity: 0.75 });
+  const weatherParticles = new THREE.Points(partGeo, partMat);
+  scene.add(weatherParticles);
+
+  /* =========================================================================
+   * 8. GAMEPLAY STATE & PROCEDURAL SPAWNER
+   * ========================================================================= */
+  const game = {
+    state: 'MENU', // MENU, RUNNING, PAUSED, GAMEOVER
+    mode: 'classic',
+    speed: 20,
+    baseSpeed: 20,
+    maxSpeed: 48,
+    distance: 0,
+    score: 0,
+    runCoins: 0,
+    runGems: 0,
+    runTokens: 0,
+    lane: 1, // 0, 1, 2
+    playerX: 0,
+    playerY: 0,
+    velY: 0,
+    isJumping: false,
+    isSliding: false,
+    slideTimer: 0,
+    invulnTimer: 0,
+    shakeIntensity: 0,
+    monsterOffsetZ: 4.2,
+    revivesUsed: 0,
+    timeTrialRemaining: 60,
+    challengeTargetDist: 600,
+    currentBiomeIdx: -1,
+    dayTimePhase: 0,
+    stepAccum: 0,
+    abilityCooldown: 0,
+    activePowerups: {}, // { id: { remaining, total } }
+    camLookAt: new THREE.Vector3(0, 1.5, -6)
+  };
+
+  function classifyObstacle(type) {
+    // Returns collision envelope: { canJump, canSlide, isFireOrLava }
+    const slideable = (type === 'low_branch' || type === 'ancient_gate' || type === 'swinging_axe');
+    const fullBlock = (type === 'stone_wall' || type === 'moving_barrier' || type === 'rotating_trap');
+    const fireOrLava = (type === 'fire_trap' || type === 'lava_pit');
+    return {
+      canJump: !slideable && !fullBlock,
+      canSlide: slideable,
+      isFireOrLava: fireOrLava
+    };
+  }
+
+  function spawnRowAtZ(zPos) {
+    // Guarantee at least 1 lane is completely free or easily passable
+    const blockedCount = Math.random() < 0.42 ? 2 : 1;
+    const lanesOrder = [0, 1, 2].sort(() => Math.random() - 0.5);
+    const chosenLanes = lanesOrder.slice(0, blockedCount);
+
+    chosenLanes.forEach(laneIdx => {
+      const inactive = obstaclePool.filter(o => !o.active);
+      if (inactive.length === 0) return;
+      const obs = inactive[Math.floor(Math.random() * inactive.length)];
+      obs.active = true;
+      obs.lane = laneIdx;
+      obs.baseX = LANES[laneIdx];
+      obs.mesh.position.set(obs.baseX, obs.type === 'falling_stone' ? 7.5 : 0, zPos);
+      obs.mesh.visible = true;
+      activeObstacles.push(obs);
+    });
+
+    // Spawn line of coins, gems, chests, or power-ups in the safe lane
+    const safeLane = lanesOrder[blockedCount];
+    const roll = Math.random();
+    if (roll < 0.72) {
+      // Spawn arc of 5 coins
+      for (let c = 0; c < 5; c++) {
+        spawnCollectible('coin', safeLane, zPos - c * 2.2, 0.85);
+      }
+    } else if (roll < 0.85) {
+      const gemChance = saveData.selectedChar === 'tarek' || game.activePowerups.gembonus ? 0.8 : 0.45;
+      spawnCollectible(Math.random() < gemChance ? 'gem' : 'coin', safeLane, zPos - 2, 1.1);
+    } else if (roll < 0.93) {
+      if (game.mode === 'event' || game.mode === 'daily') {
+        spawnCollectible('token', safeLane, zPos - 2, 1.1);
+      } else if (game.mode === 'treasure' || Math.random() < 0.4) {
+        spawnCollectible('chest', safeLane, zPos - 2, 0.55);
+      } else {
+        spawnCollectible('powerup', safeLane, zPos - 2, 1.1);
+      }
+    } else {
+      spawnCollectible('powerup', safeLane, zPos - 2, 1.15);
+    }
+  }
+
+  function spawnCollectible(kind, laneIdx, zPos, yPos) {
+    const slot = collectiblePool.find(c => !c.active && c.kind === kind);
+    if (!slot) return;
+    slot.active = true;
+    slot.lane = laneIdx;
+    if (kind === 'powerup') {
+      const pw = POWERUP_TYPES[Math.floor(Math.random() * POWERUP_TYPES.length)];
+      slot.pwId = pw.id;
+    }
+    slot.mesh.position.set(LANES[laneIdx], yPos, zPos);
+    slot.mesh.visible = true;
+    activeCollectibles.push(slot);
+  }
+
+  function clearAllTrackEntities() {
+    while (activeObstacles.length > 0) {
+      const o = activeObstacles.pop();
+      o.active = false;
+      o.mesh.visible = false;
+    }
+    while (activeCollectibles.length > 0) {
+      const c = activeCollectibles.pop();
+      c.active = false;
+      c.mesh.visible = false;
+    }
+  }
+
+  /* =========================================================================
+   * 9. POWER-UP & HERO SPECIAL ABILITY ACTIVATION
+   * ========================================================================= */
+  function getUpgradedDuration(pwId) {
+    const lvl = saveData.upgrades[pwId] || 1;
+    const base = (pwId === 'speed' || pwId === 'invincibility') ? 5.0 : 8.0;
+    return base + (lvl - 1) * 1.1;
+  }
+
+  function activatePowerup(pwId, customDuration) {
+    const dur = customDuration || getUpgradedDuration(pwId);
+    game.activePowerups[pwId] = { remaining: dur, total: dur };
+    audio.sfxPowerup();
+    vibrate(35);
+    incrementMission('powerups', 1);
+    saveData.totalPowerups++;
+
+    if (pwId === 'shield' || pwId === 'invincibility') {
+      playerRig.shieldMesh.visible = true;
+    }
+    if (pwId === 'magnet') {
+      playerRig.magnetRing.visible = true;
+    }
+  }
+
+  function triggerHeroSpecialAbility() {
+    if (game.state !== 'RUNNING' || game.abilityCooldown > 0) return;
+    const heroId = saveData.selectedChar;
+    const cdUpgrade = saveData.upgrades.ability || 1;
+    game.abilityCooldown = Math.max(10, 22 - cdUpgrade * 1.1);
+
+    if (heroId === 'kaelen') {
+      activatePowerup('speed', 4.0);
+      activatePowerup('shield', 5.0);
+      showToast('⚡ Whip Dash Activated!');
+    } else if (heroId === 'lyra') {
+      activatePowerup('magnet', 9.0);
+      showToast('🧲 Relic Magnet Activated!');
+    } else if (heroId === 'bram') {
+      // Shatter nearby obstacles
+      activeObstacles.forEach(o => {
+        if (o.mesh.position.z < 5 && o.mesh.position.z > -55) {
+          o.active = false;
+          o.mesh.visible = false;
+        }
+      });
+      activatePowerup('shield', 6.5);
+      game.shakeIntensity = 0.45;
+      showToast('🛡️ Aegis Shockwave Cleared Path!');
+    } else if (heroId === 'nyx') {
+      activatePowerup('invincibility', 6.0);
+      showToast('👻 Shadow Phase Invincibility!');
+    } else if (heroId === 'zara') {
+      activatePowerup('speed', 5.0);
+      activatePowerup('scorebooster', 8.0);
+      showToast('🔥 Flame Surge 3x Score!');
+    } else if (heroId === 'tarek') {
+      // Convert obstacles into coins
+      activeObstacles.forEach(o => {
+        if (o.active && o.mesh.position.z < 0 && o.mesh.position.z > -60) {
+          spawnCollectible('coin', o.lane, o.mesh.position.z, 1.0);
+          o.active = false;
+          o.mesh.visible = false;
+        }
+      });
+      audio.sfxTreasure();
+      showToast('✨ Alchemy Pulse: Obstacles Transmuted to Gold!');
+    } else if (heroId === 'kiko') {
+      activatePowerup('megajump', 8.0);
+      game.velY = 15;
+      game.isJumping = true;
+      showToast('🌪️ Zephyr Leap Activated!');
+    } else if (heroId === 'orin') {
+      activatePowerup('magnet', 7.5);
+      activatePowerup('shield', 7.5);
+      activatePowerup('multiplier', 7.5);
+      showToast('👑 Sovereign Aura Activated!');
+    }
+  }
+
+  /* =========================================================================
+   * 10. PLAYER CONTROLS (KEYBOARD + IMMEDIATE DELTA TOUCH SWIPES)
+   * ========================================================================= */
+  function moveLane(dir) {
+    if (game.state !== 'RUNNING') return;
+    const next = Math.max(0, Math.min(2, game.lane + dir));
+    if (next !== game.lane) {
+      game.lane = next;
+      audio.sfxClick();
+    }
+  }
+
+  function jump() {
+    if (game.state !== 'RUNNING') return;
+    if (!game.isJumping) {
+      game.isJumping = true;
+      game.isSliding = false;
+      const jumpMult = (game.activePowerups.megajump ? 1.32 : 1.0) * (saveData.selectedChar === 'kiko' ? 1.12 : 1.0);
+      game.velY = 12.8 * jumpMult;
+      audio.sfxJump();
+      saveData.totalJumps++;
+      incrementMission('jumps', 1);
+    }
+  }
+
+  function slide() {
+    if (game.state !== 'RUNNING') return;
+    game.isSliding = true;
+    game.slideTimer = saveData.selectedChar === 'nyx' ? 0.95 : 0.75;
+    if (game.isJumping) {
+      game.velY = -18; // Fast drop
+    }
+    audio.sfxSlide();
+    saveData.totalSlides++;
+    incrementMission('slides', 1);
+  }
+
+  window.addEventListener('keydown', e => {
+    if (e.code === 'ArrowLeft' || e.code === 'KeyA') { e.preventDefault(); moveLane(-1); }
+    else if (e.code === 'ArrowRight' || e.code === 'KeyD') { e.preventDefault(); moveLane(1); }
+    else if (e.code === 'ArrowUp' || e.code === 'KeyW' || e.code === 'Space') { e.preventDefault(); jump(); }
+    else if (e.code === 'ArrowDown' || e.code === 'KeyS') { e.preventDefault(); slide(); }
+    else if (e.code === 'KeyE' || e.code === 'ShiftLeft' || e.code === 'ShiftRight') { e.preventDefault(); triggerHeroSpecialAbility(); }
+    else if (e.code === 'Escape' || e.code === 'KeyP') {
+      if (game.state === 'RUNNING') pauseGame();
+      else if (game.state === 'PAUSED') resumeGame();
+    }
+  });
+
+  // Responsive Zero-Lag Touch Controls
+  let touchStartX = 0, touchStartY = 0, swipeHandled = false, lastTapTime = 0;
+  const canvasEl = renderer.domElement;
+
+  canvasEl.addEventListener('touchstart', e => {
+    if (game.state !== 'RUNNING') return;
+    e.preventDefault();
+    const t = e.touches[0];
+    touchStartX = t.clientX;
+    touchStartY = t.clientY;
+    swipeHandled = false;
+
+    const now = performance.now();
+    if (now - lastTapTime < 280) {
+      triggerHeroSpecialAbility();
+    }
+    lastTapTime = now;
+  }, { passive: false });
+
+  canvasEl.addEventListener('touchmove', e => {
+    if (game.state !== 'RUNNING' || swipeHandled) return;
+    e.preventDefault();
+    const t = e.touches[0];
+    const dx = t.clientX - touchStartX;
+    const dy = t.clientY - touchStartY;
+    if (Math.abs(dx) > 26 || Math.abs(dy) > 26) {
+      swipeHandled = true;
+      if (Math.abs(dx) > Math.abs(dy)) {
+        moveLane(dx > 0 ? 1 : -1);
+      } else {
+        if (dy < 0) jump();
+        else slide();
+      }
+    }
+  }, { passive: false });
+
+  /* =========================================================================
+   * 11. START, PAUSE, RESUME, CRASH & REVIVE FLOW
+   * ========================================================================= */
+  function startNewRun() {
+    audio.init();
+    audio.startMusic();
+    applySelectedHeroAppearance();
+    clearAllTrackEntities();
+
+    game.state = 'RUNNING';
+    game.baseSpeed = game.mode === 'timetrial' ? 24 : 20;
+    game.speed = game.baseSpeed;
+    game.distance = 0;
+    game.score = 0;
+    game.runCoins = 0;
+    game.runGems = 0;
+    game.runTokens = 0;
+    game.lane = 1;
+    game.playerX = 0;
+    game.playerY = 0;
+    game.velY = 0;
+    game.isJumping = false;
+    game.isSliding = false;
+    game.invulnTimer = 2.0;
+    game.monsterOffsetZ = 3.6;
+    game.revivesUsed = 0;
+    game.timeTrialRemaining = 60;
+    game.challengeTargetDist = 500;
+    game.abilityCooldown = 0;
+    game.activePowerups = {};
+    playerRig.shieldMesh.visible = false;
+    playerRig.magnetRing.visible = false;
+    playerRig.bodyPivot.rotation.x = 0;
+
+    if (saveData.selectedChar === 'bram') {
+      activatePowerup('shield', getUpgradedDuration('shield'));
+    }
+
+    // Reposition track segments
+    for (let i = 0; i < NUM_SEGMENTS; i++) {
+      trackSegments[i].group.position.z = -i * SEGMENT_LENGTH;
+      if (i >= 3) {
+        spawnRowAtZ(-i * SEGMENT_LENGTH);
+      }
+    }
+
+    saveData.totalRuns++;
+    saveGameData();
+
+    showScreen(null);
+    document.getElementById('jr-hud').classList.add('active');
+    updateHeadstartButton();
+  }
+
+  function updateHeadstartButton() {
+    const btn = document.getElementById('btn-hud-headstart');
+    if (game.distance < 80 && saveData.headstarts > 0 && !game.activePowerups.speed) {
+      btn.style.display = 'inline-block';
+      document.getElementById('hud-headstart-cnt').textContent = saveData.headstarts;
+    } else {
+      btn.style.display = 'none';
+    }
+  }
+
+  document.getElementById('btn-hud-headstart').addEventListener('click', () => {
+    if (saveData.headstarts > 0 && game.state === 'RUNNING') {
+      saveData.headstarts--;
+      const boostLvl = saveData.upgrades.headstart || 1;
+      const dur = 4.5 + boostLvl * 0.5;
+      activatePowerup('speed', dur);
+      activatePowerup('invincibility', dur);
+      updateHeadstartButton();
+      saveGameData();
+      showToast('🚀 Head Start Booster Engaged!');
+    }
+  });
+
+  function pauseGame() {
+    if (game.state !== 'RUNNING') return;
+    game.state = 'PAUSED';
+    showScreen('jr-pause-modal');
+  }
+
+  function resumeGame() {
+    if (game.state !== 'PAUSED') return;
+    game.state = 'RUNNING';
+    showScreen(null);
+  }
+
+  function handlePlayerCrash() {
+    // Check Shield or Invincibility
+    if (game.invulnTimer > 0 || game.activePowerups.invincibility || game.activePowerups.speed) {
+      return;
+    }
+    if (game.activePowerups.shield) {
+      delete game.activePowerups.shield;
+      playerRig.shieldMesh.visible = false;
+      game.invulnTimer = 2.0;
+      game.shakeIntensity = 0.45;
+      audio.sfxCrash();
+      vibrate(80);
+      showToast('🛡️ Shield Absorbed Impact!');
+      return;
+    }
+
+    // Lethal Crash
+    audio.sfxCrash();
+    audio.sfxGameOver();
+    vibrate([100, 50, 120]);
+    game.state = 'GAMEOVER';
+    game.shakeIntensity = 0.7;
+    playerRig.bodyPivot.rotation.x = -Math.PI / 2.2;
+    monsterRig.root.position.z = 1.2;
+
+    const finalScore = Math.floor(game.score);
+    const finalDist = Math.floor(game.distance);
+    if (finalScore > saveData.bestScore) saveData.bestScore = finalScore;
+    if (finalDist > saveData.bestDist) saveData.bestDist = finalDist;
+    saveData.totalDist += finalDist;
+    checkAchievements();
+    saveGameData();
+
+    document.getElementById('go-score').textContent = finalScore.toLocaleString();
+    document.getElementById('go-dist').textContent = finalDist + 'm';
+    document.getElementById('go-coins').textContent = game.runCoins;
+    document.getElementById('go-gems').textContent = game.runGems;
+    document.getElementById('go-best-score').textContent = saveData.bestScore.toLocaleString();
+    document.getElementById('go-best-dist').textContent = saveData.bestDist + 'm';
+
+    const revivesLeft = Math.max(0, 3 - game.revivesUsed);
+    document.getElementById('go-revives-left').textContent = revivesLeft;
+    document.getElementById('go-gem-cost').textContent = 5 * (game.revivesUsed + 1);
+    document.getElementById('go-ankh-cnt').textContent = saveData.reviveAnkhs;
+    document.getElementById('go-revive-box').style.display = revivesLeft > 0 ? 'block' : 'none';
+
+    showScreen('jr-gameover-modal');
+  }
+
+  function executeRevive() {
+    game.revivesUsed++;
+    game.state = 'RUNNING';
+    game.invulnTimer = 3.5;
+    activatePowerup('invincibility', 3.5);
+    playerRig.bodyPivot.rotation.x = 0;
+    monsterRig.root.position.z = 4.6;
+
+    // Clear nearby obstacles for a safe resurrection
+    activeObstacles.forEach(o => {
+      if (o.mesh.position.z > -45 && o.mesh.position.z < 10) {
+        o.active = false;
+        o.mesh.visible = false;
+      }
+    });
+
+    if (game.mode === 'timetrial' && game.timeTrialRemaining <= 2) {
+      game.timeTrialRemaining = 25;
+    }
+
+    showScreen(null);
+    showToast('🏺 Resurrected with 3.5s Invincibility!');
+  }
+
+  /* =========================================================================
+   * 12. MISSIONS & ACHIEVEMENTS ENGINE
+   * ========================================================================= */
+  function incrementMission(type, amount) {
+    // Standard progressive missions
+    saveData.missions.forEach(m => {
+      if (m.type === type || (m.type === 'singleCoins' && type === 'coins')) {
+        m.progress = Math.min(m.target, m.progress + amount);
+        if (m.progress >= m.target) {
+          saveData.coins += m.reward;
+          saveData.lifetimeCoins += m.reward;
+          showToast(`📜 Mission Complete! +${m.reward} Coins`);
+          // Roll next endless tier mission
+          m.tier = (m.tier || 1) + 1;
+          m.progress = 0;
+          m.target = Math.round(m.target * 1.45);
+          m.reward = Math.round(m.reward * 1.35);
+          if (m.type === 'coins') m.desc = `Collect ${m.target} Gold Coins`;
+          else if (m.type === 'dist') m.desc = `Run ${m.target} Meters`;
+          else if (m.type === 'jumps') m.desc = `Jump ${m.target} Times`;
+        }
+      }
+    });
+
+    // Daily Challenges
+    saveData.dailyChallenges.items.forEach(dc => {
+      if (!dc.claimed) {
+        if (dc.type === type) dc.progress = Math.min(dc.target, dc.progress + amount);
+        if (dc.type === 'singleCoins' && type === 'coins') {
+          dc.progress = Math.min(dc.target, Math.max(dc.progress, game.runCoins));
+        }
+      }
+    });
+
+    // Weekly Challenges
+    saveData.weeklyChallenges.forEach(wc => {
+      if (!wc.claimed && wc.type === type) {
+        wc.progress = Math.min(wc.target, wc.progress + amount);
+      }
+    });
+  }
+
+  function checkAchievements() {
+    ACHIEVEMENTS_DEF.forEach(ach => {
+      if (!saveData.achievementsClaimed.includes(ach.id)) {
+        const val = saveData[ach.stat] || 0;
+        if (val >= ach.target) {
+          showToast(`🏆 Achievement Ready: ${ach.name}!`);
+        }
+      }
+    });
+  }
+
+  /* =========================================================================
+   * 13. MAIN SIMULATION & RENDER LOOP (60 FPS)
+   * ========================================================================= */
+  let lastFrameTime = performance.now();
+  let fpsFrames = 0, fpsTimer = 0;
+
+  function updateBiomeAndAtmosphere(dt) {
+    const biomeIdx = Math.floor(game.distance / 400) % BIOMES.length;
+    if (biomeIdx !== game.currentBiomeIdx) {
+      game.currentBiomeIdx = biomeIdx;
+      const b = BIOMES[biomeIdx];
+      MATS.path.color.setHex(b.pathColor);
+      MATS.side.color.setHex(b.sideColor);
+      dirLight.color.setHex(b.lightColor);
+      const banner = document.getElementById('jr-zone-banner');
+      banner.textContent = b.name;
+      banner.classList.add('show');
+      setTimeout(() => banner.classList.remove('show'), 2600);
+    }
+
+    // Continuous Day/Night Cycle interpolation
+    game.dayTimePhase = (game.dayTimePhase + dt * 0.025) % 1;
+    const daylight = 0.55 + 0.45 * Math.sin(game.dayTimePhase * Math.PI * 2);
+    const activeBiome = BIOMES[game.currentBiomeIdx >= 0 ? game.currentBiomeIdx : 0];
+    const baseSky = new THREE.Color(activeBiome.skyColor).multiplyScalar(daylight);
+    const baseFog = new THREE.Color(activeBiome.fogColor).multiplyScalar(daylight);
+    if (game.mode === 'event') {
+      baseSky.setHex(0x3b0918);
+      baseFog.setHex(0x290610);
+    }
+    scene.background.copy(baseSky);
+    scene.fog.color.copy(baseFog);
+    dirLight.intensity = 0.45 + 0.65 * daylight;
+  }
+
+  function animate(now) {
+    requestAnimationFrame(animate);
+    const dt = Math.min(0.05, (now - lastFrameTime) / 1000);
+    lastFrameTime = now;
+
+    // FPS Counter
+    fpsFrames++;
+    fpsTimer += dt;
+    if (fpsTimer >= 0.5) {
+      const fps = Math.round(fpsFrames / fpsTimer);
+      const fpsEl = document.getElementById('hud-fps');
+      if (saveData.settings.perfMode) {
+        fpsEl.style.display = 'block';
+        fpsEl.textContent = fps + ' FPS';
+      } else {
+        fpsEl.style.display = 'none';
+      }
+      fpsFrames = 0;
+      fpsTimer = 0;
+    }
+
+    if (game.state === 'RUNNING') {
+      // 1. Speed & Distance Progression (Unlimited)
+      const speedBoostFactor = game.activePowerups.speed ? 1.55 : 1.0;
+      game.baseSpeed = Math.min(game.maxSpeed, 20 + Math.sqrt(game.distance) * 0.22);
+      game.speed = game.baseSpeed * speedBoostFactor;
+
+      const dDist = game.speed * dt * 0.45;
+      game.distance += dDist;
+      incrementMission('dist', dDist);
+
+      const heroScoreMult = saveData.selectedChar === 'orin' ? 2 : 1;
+      const pwScoreMult = game.activePowerups.scorebooster ? 3 : 1;
+      const totalMult = saveData.baseMultiplier * heroScoreMult * pwScoreMult;
+      game.score += dDist * 12 * totalMult;
+
+      // Mode-specific rules
+      const modeBox = document.getElementById('hud-mode-box');
+      if (game.mode === 'timetrial') {
+        modeBox.style.display = 'block';
+        game.timeTrialRemaining -= dt;
+        document.getElementById('hud-mode-val').textContent = Math.max(0, game.timeTrialRemaining).toFixed(1) + 's';
+        document.getElementById('hud-mode-label').textContent = 'TIME LEFT';
+        if (game.timeTrialRemaining <= 0) handlePlayerCrash();
+      } else if (game.mode === 'challenge') {
+        modeBox.style.display = 'block';
+        document.getElementById('hud-mode-val').textContent = Math.floor(game.distance) + '/' + game.challengeTargetDist + 'm';
+        document.getElementById('hud-mode-label').textContent = 'STAGE GOAL';
+        if (game.distance >= game.challengeTargetDist) {
+          saveData.gems += 5;
+          saveData.lifetimeGems += 5;
+          game.challengeTargetDist += 600;
+          showToast('🎯 Challenge Stage Cleared! +5 Magic Gems!');
+        }
+      } else {
+        modeBox.style.display = 'none';
+      }
+
+      updateBiomeAndAtmosphere(dt);
+      updateHeadstartButton();
+
+      // 2. Cooldowns & Active Power-ups
+      if (game.invulnTimer > 0) game.invulnTimer -= dt;
+      if (game.abilityCooldown > 0) game.abilityCooldown = Math.max(0, game.abilityCooldown - dt);
+
+      const abilBtn = document.getElementById('btn-hud-ability');
+      if (game.abilityCooldown > 0) {
+        abilBtn.disabled = true;
+        abilBtn.textContent = `⏳ RECHARGING (${Math.ceil(game.abilityCooldown)}s)`;
+      } else {
+        abilBtn.disabled = false;
+        abilBtn.textContent = `⚡ ABILITY READY (DBL-TAP / E)`;
+      }
+
+      Object.keys(game.activePowerups).forEach(k => {
+        game.activePowerups[k].remaining -= dt;
+        if (game.activePowerups[k].remaining <= 0) {
+          delete game.activePowerups[k];
+          if (k === 'shield' || k === 'invincibility') {
+            playerRig.shieldMesh.visible = Boolean(game.activePowerups.shield || game.activePowerups.invincibility);
+          }
+          if (k === 'magnet') playerRig.magnetRing.visible = false;
+        }
+      });
+
+      // 3. Player Kinematics (Exponential Lane Damping, Jump & Slide)
+      const targetX = LANES[game.lane];
+      const laneLerp = 1 - Math.exp(-14 * dt);
+      game.playerX += (targetX - game.playerX) * laneLerp;
+
+      if (game.isJumping) {
+        game.playerY += game.velY * dt;
+        game.velY -= 32 * dt;
+        if (game.playerY <= 0) {
+          game.playerY = 0;
+          game.velY = 0;
+          game.isJumping = false;
+        }
+      }
+
+      if (game.isSliding) {
+        game.slideTimer -= dt;
+        playerRig.bodyPivot.scale.y = 0.52;
+        if (game.slideTimer <= 0) {
+          game.isSliding = false;
+          playerRig.bodyPivot.scale.y = 1.0;
+        }
+      } else {
+        playerRig.bodyPivot.scale.y = 1.0;
+      }
+
+      playerRig.root.position.set(game.playerX, game.playerY, 0);
+
+      // Footsteps & Limb Swing
+      game.stepAccum += dt * game.speed * 0.65;
+      if (!game.isJumping && !game.isSliding && Math.sin(game.stepAccum) > 0.92) {
+        audio.sfxStep();
+      }
+      const swing = Math.sin(now * 0.016) * 0.75;
+      playerRig.leftLeg.rotation.x = game.isJumping ? 0.5 : swing;
+      playerRig.rightLeg.rotation.x = game.isJumping ? -0.4 : -swing;
+      playerRig.leftArm.rotation.x = -swing * 0.85;
+      playerRig.rightArm.rotation.x = swing * 0.85;
+      playerRig.magnetRing.rotation.z += dt * 4;
+
+      // Chasing Guardian Monster
+      game.monsterOffsetZ = Math.min(5.2, game.monsterOffsetZ + dt * 0.25);
+      monsterRig.root.position.x += (game.playerX - monsterRig.root.position.x) * (1 - Math.exp(-6 * dt));
+      monsterRig.root.position.z = game.monsterOffsetZ;
+      monsterRig.legL.rotation.x = -swing;
+      monsterRig.legR.rotation.x = swing;
+      monsterRig.armL.rotation.x = -0.6 + Math.sin(now * 0.02) * 0.35;
+      monsterRig.armR.rotation.x = -0.6 - Math.sin(now * 0.02) * 0.35;
+
+      // 4. Track Ring-Buffer Movement
+      const moveZ = game.speed * dt;
+      trackSegments.forEach(seg => {
+        seg.group.position.z += moveZ;
+        if (seg.group.position.z > SEGMENT_LENGTH) {
+          seg.group.position.z -= NUM_SEGMENTS * SEGMENT_LENGTH;
+          spawnRowAtZ(seg.group.position.z);
+        }
+      });
+
+      // 5. Update Obstacles & Analytical AABB Collision Detection
+      for (let i = activeObstacles.length - 1; i >= 0; i--) {
+        const o = activeObstacles[i];
+        o.mesh.position.z += (o.type === 'rolling_rock' ? moveZ * 1.35 : moveZ);
+
+        // Dynamic Obstacle Animations
+        if (o.type === 'moving_barrier' || o.type === 'moving_platform') {
+          o.mesh.position.x = Math.sin(now * 0.003 + o.phase) * LANE_WIDTH;
+        } else if (o.type === 'rotating_trap') {
+          o.mesh.rotation.y += dt * 4.5;
+        } else if (o.type === 'swinging_axe') {
+          o.mesh.rotation.z = Math.sin(now * 0.004 + o.phase) * 0.45;
+        } else if (o.type === 'falling_stone' && o.mesh.position.z > -28 && o.mesh.position.y > 0.85) {
+          o.mesh.position.y = Math.max(0.85, o.mesh.position.y - dt * 18);
+        }
+
+        // Collision Check in Longitudinal & Lateral Window
+        if (Math.abs(o.mesh.position.z) < 0.95 && Math.abs(o.mesh.position.x - game.playerX) < 0.95) {
+          const rules = classifyObstacle(o.type);
+          let safe = false;
+          if (rules.isFireOrLava && saveData.selectedChar === 'zara') safe = true;
+          else if (rules.canJump && game.playerY > 1.05) safe = true;
+          else if (rules.canSlide && game.isSliding) safe = true;
+
+          if (!safe) {
+            o.active = false;
+            o.mesh.visible = false;
+            activeObstacles.splice(i, 1);
+            handlePlayerCrash();
+            break;
+          }
+        }
+
+        if (o.mesh.position.z > 14) {
+          o.active = false;
+          o.mesh.visible = false;
+          activeObstacles.splice(i, 1);
+        }
+      }
+
+      // 6. Update Collectibles & Magnet Attraction
+      const magnetActive = Boolean(game.activePowerups.magnet);
+      for (let i = activeCollectibles.length - 1; i >= 0; i--) {
+        const c = activeCollectibles[i];
+        c.mesh.position.z += moveZ;
+        c.mesh.rotation.y += dt * 3.2;
+
+        if (magnetActive && c.kind === 'coin' && c.mesh.position.z > -18 && c.mesh.position.z < 3) {
+          c.mesh.position.x += (game.playerX - c.mesh.position.x) * (1 - Math.exp(-12 * dt));
+          c.mesh.position.y += (game.playerY + 1.0 - c.mesh.position.y) * (1 - Math.exp(-12 * dt));
+        }
+
+        const dx = Math.abs(c.mesh.position.x - game.playerX);
+        const dz = Math.abs(c.mesh.position.z);
+        if (dz < 1.15 && dx < 1.15) {
+          if (c.kind === 'coin') {
+            const mult = (game.activePowerups.multiplier ? 2 : 1) * (saveData.selectedChar === 'lyra' ? 1.2 : 1);
+            const gain = Math.round(1 * mult);
+            game.runCoins += gain;
+            saveData.coins += gain;
+            saveData.lifetimeCoins += gain;
+            game.score += 25 * gain;
+            if (game.mode === 'timetrial' && game.runCoins % 20 === 0) {
+              game.timeTrialRemaining += 4;
+            }
+            incrementMission('coins', gain);
+            audio.sfxCoin();
+          } else if (c.kind === 'gem') {
+            const gain = game.activePowerups.gembonus ? 2 : 1;
+            game.runGems += gain;
+            saveData.gems += gain;
+            saveData.lifetimeGems += gain;
+            game.score += 250 * gain;
+            incrementMission('gems', gain);
+            audio.sfxGem();
+          } else if (c.kind === 'token') {
+            game.runTokens++;
+            saveData.tokens++;
+            audio.sfxGem();
+            showToast('🏺 +1 Ancient Event Token!');
+          } else if (c.kind === 'chest') {
+            const bonusCoins = 120 + Math.floor(Math.random() * 180);
+            saveData.coins += bonusCoins;
+            saveData.lifetimeCoins += bonusCoins;
+            saveData.chestsOpened++;
+            game.runCoins += bonusCoins;
+            audio.sfxTreasure();
+            showToast(`📦 Treasure Chest! +${bonusCoins} Gold Coins!`);
+          } else if (c.kind === 'powerup') {
+            activatePowerup(c.pwId);
+          }
+
+          c.active = false;
+          c.mesh.visible = false;
+          activeCollectibles.splice(i, 1);
+          continue;
+        }
+
+        if (c.mesh.position.z > 14) {
+          c.active = false;
+          c.mesh.visible = false;
+          activeCollectibles.splice(i, 1);
+        }
+      }
+
+      // 7. Weather Particle Cycling
+      const posArr = weatherParticles.geometry.attributes.position.array;
+      for (let i = 0; i < PARTICLE_COUNT; i++) {
+        posArr[i * 3 + 1] -= dt * 5.5;
+        posArr[i * 3 + 2] += moveZ * 0.7;
+        if (posArr[i * 3 + 1] < 0) posArr[i * 3 + 1] = 15;
+        if (posArr[i * 3 + 2] > 8) posArr[i * 3 + 2] = -85;
+      }
+      weatherParticles.geometry.attributes.position.needsUpdate = true;
+
+      updateGameplayHUD();
+    }
+
+    // 8. Frame-Rate Independent Exponential Camera Damping
+    const camLambda = saveData.settings.camSens || 8;
+    const camT = 1 - Math.exp(-camLambda * dt);
+    const desiredCamX = game.playerX * 0.65;
+    const desiredCamY = 4.5 + game.playerY * 0.45;
+    camera.position.x += (desiredCamX - camera.position.x) * camT;
+    camera.position.y += (desiredCamY - camera.position.y) * camT;
+    camera.position.z = 7.2;
+
+    if (game.shakeIntensity > 0.005) {
+      camera.position.x += (Math.random() - 0.5) * game.shakeIntensity;
+      camera.position.y += (Math.random() - 0.5) * game.shakeIntensity;
+      game.shakeIntensity *= Math.exp(-8.0 * dt);
+    }
+
+    const desiredLook = new THREE.Vector3(game.playerX * 0.4, 1.4 + game.playerY * 0.3, -8);
+    game.camLookAt.lerp(desiredLook, camT);
+    camera.lookAt(game.camLookAt);
+
+    renderer.render(scene, camera);
+  }
+
+  /* =========================================================================
+   * 14. UI CONTROLLERS, MODALS, SHOP, UPGRADES & DAILY REWARDS
+   * ========================================================================= */
+  function updateGameplayHUD() {
+    document.getElementById('hud-score').textContent = Math.floor(game.score).toLocaleString();
+    document.getElementById('hud-distance').textContent = Math.floor(game.distance);
+    const mult = saveData.baseMultiplier * (saveData.selectedChar === 'orin' ? 2 : 1) * (game.activePowerups.scorebooster ? 3 : 1);
+    document.getElementById('hud-multiplier').textContent = mult + 'x';
+    document.getElementById('hud-coins').textContent = saveData.coins.toLocaleString();
+    document.getElementById('hud-gems').textContent = saveData.gems;
+    document.getElementById('hud-tokens').textContent = saveData.tokens;
+
+    const pwWrap = document.getElementById('hud-powerups');
+    pwWrap.innerHTML = '';
+    Object.keys(game.activePowerups).forEach(k => {
+      const pw = game.activePowerups[k];
+      const pct = Math.max(0, Math.min(100, (pw.remaining / pw.total) * 100));
+      const div = document.createElement('div');
+      div.className = 'pw-pill';
+      div.innerHTML = `<div style="display:flex;justify-content:space-between;"><span>${k.toUpperCase()}</span><span>${pw.remaining.toFixed(1)}s</span></div><div class="pw-bar" style="width:${pct}%"></div>`;
+      pwWrap.appendChild(div);
+    });
+  }
+
+  function showScreen(screenId) {
+    document.querySelectorAll('.jr-screen').forEach(el => {
+      if (el.id === 'jr-loading-screen') return;
+      el.classList.toggle('active', el.id === screenId);
+    });
+  }
+
+  let toastTimeout = null;
+  function showToast(msg) {
+    const t = document.getElementById('jr-toast');
+    t.textContent = msg;
+    t.classList.add('show');
+    if (toastTimeout) clearTimeout(toastTimeout);
+    toastTimeout = setTimeout(() => t.classList.remove('show'), 2500);
+  }
+
+  function refreshMenuUI() {
+    document.getElementById('menu-coins').textContent = saveData.coins.toLocaleString();
+    document.getElementById('menu-gems').textContent = saveData.gems.toLocaleString();
+    document.getElementById('menu-tokens').textContent = saveData.tokens.toLocaleString();
+
+    const hero = CHARACTERS.find(c => c.id === saveData.selectedChar) || CHARACTERS[0];
+    const skin = CUSTOMIZATIONS.find(s => s.id === saveData.selectedSkin) || CUSTOMIZATIONS[0];
+    document.getElementById('menu-active-char').textContent = hero.name;
+    document.getElementById('menu-active-skin').textContent = skin.name;
+
+    document.getElementById('stat-best-score').textContent = saveData.bestScore.toLocaleString();
+    document.getElementById('stat-best-dist').textContent = saveData.bestDist + 'm';
+    document.getElementById('stat-total-dist').textContent = saveData.totalDist + 'm';
+    document.getElementById('stat-total-runs').textContent = saveData.totalRuns;
+
+    const preview = document.getElementById('menu-missions-preview');
+    preview.innerHTML = '';
+    saveData.missions.forEach(m => {
+      const row = document.createElement('div');
+      row.textContent = `• ${m.desc} (${Math.floor(m.progress)}/${m.target})`;
+      preview.appendChild(row);
+    });
+  }
+
+  // Render Characters & Customization
+  function renderCharactersModal() {
+    const roster = document.getElementById('char-roster-view');
+    roster.innerHTML = '';
+    CHARACTERS.forEach(c => {
+      const unlocked = saveData.unlockedChars.includes(c.id);
+      const selected = saveData.selectedChar === c.id;
+      const card = document.createElement('div');
+      card.className = 'item-card' + (selected ? ' selected' : '');
+      const currIcon = c.currency === 'coins' ? '🪙' : (c.currency === 'gems' ? '💎' : '🏺');
+      card.innerHTML = `
+        <div>
+          <div class="item-avatar" style="color:#${c.color.toString(16).padStart(6,'0')};">🏃</div>
+          <h3 style="margin-top:8px;color:var(--gold);">${c.name}</h3>
+          <div style="font-size:0.75rem;color:var(--emerald);font-weight:700;">${c.role} | ${c.passive}</div>
+          <p style="font-size:0.78rem;color:var(--text-muted);margin-top:4px;"><b>${c.abilityName}:</b> ${c.abilityDesc}</p>
+        </div>
+        <button class="${selected ? 'btn-secondary' : 'btn-gold'}" style="width:100%;">
+          ${selected ? '✓ Selected' : (unlocked ? 'Select Hero' : `Unlock (${currIcon} ${c.cost})`)}
+        </button>
+      `;
+      card.querySelector('button').addEventListener('click', () => {
+        audio.sfxClick();
+        if (unlocked) {
+          saveData.selectedChar = c.id;
+          applySelectedHeroAppearance();
+          saveGameData();
+          renderCharactersModal();
+        } else {
+          if (saveData[c.currency] >= c.cost) {
+            saveData[c.currency] -= c.cost;
+            saveData.unlockedChars.push(c.id);
+            saveData.selectedChar = c.id;
+            applySelectedHeroAppearance();
+            audio.sfxTreasure();
+            saveGameData();
+            renderCharactersModal();
+            showToast(`🎉 Unlocked ${c.name}!`);
+          } else {
+            showToast(`Not enough ${c.currency.toUpperCase()}!`);
+          }
+        }
+      });
+      roster.appendChild(card);
+    });
+
+    const custom = document.getElementById('char-custom-view');
+    custom.innerHTML = '';
+    CUSTOMIZATIONS.forEach(s => {
+      const unlocked = saveData.unlockedSkins.includes(s.id);
+      const selected = saveData.selectedSkin === s.id;
+      const currIcon = s.currency === 'coins' ? '🪙' : (s.currency === 'gems' ? '💎' : '🏺');
+      const card = document.createElement('div');
+      card.className = 'item-card' + (selected ? ' selected' : '');
+      card.innerHTML = `
+        <div>
+          <div class="item-avatar">👕</div>
+          <h3 style="margin-top:8px;color:var(--gold);">${s.name}</h3>
+          <div style="font-size:0.75rem;color:var(--cyan);font-weight:700;">${s.type}</div>
+          <p style="font-size:0.78rem;color:var(--text-muted);margin-top:4px;">${s.desc}</p>
+        </div>
+        <button class="${selected ? 'btn-secondary' : 'btn-gold'}" style="width:100%;">
+          ${selected ? '✓ Equipped' : (unlocked ? 'Equip' : `Buy (${currIcon} ${s.cost})`)}
+        </button>
+      `;
+      card.querySelector('button').addEventListener('click', () => {
+        audio.sfxClick();
+        if (unlocked) {
+          saveData.selectedSkin = s.id;
+          applySelectedHeroAppearance();
+          saveGameData();
+          renderCharactersModal();
+        } else if (saveData[s.currency] >= s.cost) {
+          saveData[s.currency] -= s.cost;
+          saveData.unlockedSkins.push(s.id);
+          saveData.selectedSkin = s.id;
+          applySelectedHeroAppearance();
+          audio.sfxTreasure();
+          saveGameData();
+          renderCharactersModal();
+          showToast(`👕 Equipped ${s.name}!`);
+        } else {
+          showToast(`Not enough ${s.currency.toUpperCase()}!`);
+        }
+      });
+      custom.appendChild(card);
+    });
+  }
+
+  // Render Upgrades Modal
+  function renderUpgradesModal() {
+    const grid = document.getElementById('upgrades-grid');
+    grid.innerHTML = '';
+    UPGRADES_DEF.forEach(u => {
+      const lvl = saveData.upgrades[u.id] || 1;
+      const isMax = lvl >= 10;
+      const cost = Math.round(u.baseCost * Math.pow(1.45, lvl - 1));
+      const currIcon = u.currency === 'coins' ? '🪙' : '💎';
+      const card = document.createElement('div');
+      card.className = 'item-card';
+      card.innerHTML = `
+        <div>
+          <div style="display:flex;justify-content:space-between;align-items:center;">
+            <span style="font-size:1.7rem;">${u.icon}</span>
+            <span style="font-size:0.8rem;font-weight:800;color:var(--emerald);">Level ${lvl} / 10</span>
+          </div>
+          <h3 style="margin-top:6px;color:var(--gold);font-size:1rem;">${u.name}</h3>
+          <p style="font-size:0.78rem;color:var(--text-muted);margin-top:4px;">${u.desc}</p>
+          <div class="progress-track"><div class="progress-fill" style="width:${lvl * 10}%"></div></div>
+        </div>
+        <button class="${isMax ? 'btn-secondary' : 'btn-gold'}" style="width:100%;" ${isMax ? 'disabled' : ''}>
+          ${isMax ? 'MAX LEVEL (10)' : `Upgrade (${currIcon} ${cost})`}
+        </button>
+      `;
+      if (!isMax) {
+        card.querySelector('button').addEventListener('click', () => {
+          if (saveData[u.currency] >= cost) {
+            saveData[u.currency] -= cost;
+            saveData.upgrades[u.id] = lvl + 1;
+            audio.sfxPowerup();
+            saveGameData();
+            renderUpgradesModal();
+            showToast(`⚡ ${u.name} Upgraded to Lv.${lvl + 1}!`);
+          } else {
+            showToast(`Not enough ${u.currency.toUpperCase()}!`);
+          }
+        });
+      }
+      grid.appendChild(card);
+    });
+  }
+
+  // Render Shop Modal
+  let currentShopTab = 'boosters';
+  function renderShopModal() {
+    const grid = document.getElementById('shop-items-grid');
+    grid.innerHTML = '';
+    const items = SHOP_CATALOG[currentShopTab] || [];
+    items.forEach(item => {
+      const currIcon = item.currency === 'coins' ? '🪙' : (item.currency === 'gems' ? '💎' : '🏺');
+      let ownedInfo = '';
+      if (item.action === 'addHeadstart') ownedInfo = `Owned: ${saveData.headstarts}`;
+      else if (item.action === 'addRevive') ownedInfo = `Owned: ${saveData.reviveAnkhs}`;
+      else if (item.action === 'addScoreMult') ownedInfo = `Current Base: ${saveData.baseMultiplier}x`;
+
+      const card = document.createElement('div');
+      card.className = 'item-card';
+      card.innerHTML = `
+        <div>
+          <div class="item-avatar">${item.icon}</div>
+          <h3 style="margin-top:8px;color:var(--gold);">${item.name}</h3>
+          <div style="font-size:0.76rem;color:var(--cyan);font-weight:700;">${ownedInfo}</div>
+          <p style="font-size:0.78rem;color:var(--text-muted);margin-top:4px;">${item.desc}</p>
+        </div>
+        <button class="btn-gold" style="width:100%;">Buy (${currIcon} ${item.price})</button>
+      `;
+      card.querySelector('button').addEventListener('click', () => {
+        if (saveData[item.currency] < item.price) {
+          showToast(`Not enough ${item.currency.toUpperCase()}!`);
+          return;
+        }
+        saveData[item.currency] -= item.price;
+        if (item.action === 'addHeadstart') saveData.headstarts++;
+        else if (item.action === 'addRevive') saveData.reviveAnkhs++;
+        else if (item.action === 'addScoreMult') saveData.baseMultiplier++;
+        else if (item.action === 'openWoodenChest') {
+          const c = 400 + Math.floor(Math.random() * 450);
+          const g = 3 + Math.floor(Math.random() * 5);
+          saveData.coins += c; saveData.gems += g; saveData.chestsOpened++;
+          showToast(`📦 Wooden Chest: +${c} Coins & +${g} Gems!`);
+        } else if (item.action === 'openGoldenChest') {
+          const c = 1800 + Math.floor(Math.random() * 1200);
+          const g = 12 + Math.floor(Math.random() * 15);
+          const t = 4 + Math.floor(Math.random() * 5);
+          saveData.coins += c; saveData.gems += g; saveData.tokens += t; saveData.chestsOpened++;
+          showToast(`👑 Golden Chest: +${c} Coins, +${g} Gems, +${t} Tokens!`);
+        } else if (item.action === 'buyGemPack') {
+          saveData.gems += 50;
+          showToast('💎 +50 Magic Gems Added!');
+        } else if (item.action === 'buyCoinPack') {
+          saveData.coins += 10000;
+          showToast('💰 +10,000 Gold Coins Added!');
+        }
+        audio.sfxTreasure();
+        saveGameData();
+        renderShopModal();
+      });
+      grid.appendChild(card);
+    });
+  }
+
+  // Render Missions Modal
+  let currentMissionTab = 'standard';
+  function renderMissionsModal() {
+    const grid = document.getElementById('missions-list-container');
+    grid.innerHTML = '';
+    if (currentMissionTab === 'standard') {
+      saveData.missions.forEach(m => {
+        const pct = Math.min(100, (m.progress / m.target) * 100);
+        const card = document.createElement('div');
+        card.className = 'item-card';
+        card.innerHTML = `
+          <div>
+            <div style="font-size:0.75rem;color:var(--emerald);font-weight:800;">Tier ${m.tier || 1} Mission</div>
+            <h3 style="color:var(--gold);margin-top:4px;">${m.desc}</h3>
+            <p style="font-size:0.8rem;color:var(--text-muted);margin-top:4px;">Progress: ${Math.floor(m.progress)} / ${m.target}</p>
+            <div class="progress-track"><div class="progress-fill" style="width:${pct}%"></div></div>
+          </div>
+          <div style="font-size:0.85rem;font-weight:800;color:var(--gold);">Reward: 🪙 ${m.reward} Coins (Auto-Claims)</div>
+        `;
+        grid.appendChild(card);
+      });
+    } else if (currentMissionTab === 'daily') {
+      saveData.dailyChallenges.items.forEach(dc => {
+        const pct = Math.min(100, (dc.progress / dc.target) * 100);
+        const ready = dc.progress >= dc.target && !dc.claimed;
+        const card = document.createElement('div');
+        card.className = 'item-card';
+        card.innerHTML = `
+          <div>
+            <div style="font-size:0.75rem;color:var(--cyan);font-weight:800;">Daily Challenge (Resets 24h)</div>
+            <h3 style="color:var(--gold);margin-top:4px;">${dc.desc}</h3>
+            <p style="font-size:0.8rem;color:var(--text-muted);margin-top:4px;">Progress: ${Math.floor(dc.progress)} / ${dc.target}</p>
+            <div class="progress-track"><div class="progress-fill" style="width:${pct}%"></div></div>
+          </div>
+          <button class="${ready ? 'btn-gold' : 'btn-secondary'}" ${!ready ? 'disabled' : ''}>
+            ${dc.claimed ? '✓ Claimed' : `Claim (🏺 ${dc.rewardTokens} Tokens)`}
+          </button>
+        `;
+        if (ready) {
+          card.querySelector('button').addEventListener('click', () => {
+            dc.claimed = true;
+            saveData.tokens += dc.rewardTokens;
+            audio.sfxTreasure();
+            saveGameData();
+            renderMissionsModal();
+            showToast(`🏺 +${dc.rewardTokens} Ancient Tokens Claimed!`);
+          });
+        }
+        grid.appendChild(card);
+      });
+    } else {
+      saveData.weeklyChallenges.forEach(wc => {
+        const pct = Math.min(100, (wc.progress / wc.target) * 100);
+        const ready = wc.progress >= wc.target && !wc.claimed;
+        const card = document.createElement('div');
+        card.className = 'item-card';
+        card.innerHTML = `
+          <div>
+            <div style="font-size:0.75rem;color:var(--magenta);font-weight:800;">Weekly Expedition</div>
+            <h3 style="color:var(--gold);margin-top:4px;">${wc.desc}</h3>
+            <p style="font-size:0.8rem;color:var(--text-muted);margin-top:4px;">Progress: ${Math.floor(wc.progress)} / ${wc.target}</p>
+            <div class="progress-track"><div class="progress-fill" style="width:${pct}%"></div></div>
+          </div>
+          <button class="${ready ? 'btn-gold' : 'btn-secondary'}" ${!ready ? 'disabled' : ''}>
+            ${wc.claimed ? '✓ Claimed' : `Claim (💎 ${wc.rewardGems} Gems)`}
+          </button>
+        `;
+        if (ready) {
+          card.querySelector('button').addEventListener('click', () => {
+            wc.claimed = true;
+            saveData.gems += wc.rewardGems;
+            audio.sfxTreasure();
+            saveGameData();
+            renderMissionsModal();
+            showToast(`💎 +${wc.rewardGems} Magic Gems Claimed!`);
+          });
+        }
+        grid.appendChild(card);
+      });
+    }
+  }
+
+  // Render Achievements Modal
+  function renderAchievementsModal() {
+    const grid = document.getElementById('achievements-grid');
+    grid.innerHTML = '';
+    ACHIEVEMENTS_DEF.forEach(ach => {
+      const val = Math.floor(saveData[ach.stat] || 0);
+      const pct = Math.min(100, (val / ach.target) * 100);
+      const claimed = saveData.achievementsClaimed.includes(ach.id);
+      const ready = val >= ach.target && !claimed;
+      const card = document.createElement('div');
+      card.className = 'item-card' + (claimed ? ' selected' : '');
+      card.innerHTML = `
+        <div>
+          <div style="display:flex;justify-content:space-between;">
+            <span style="font-size:1.8rem;">${ach.icon}</span>
+            <span style="font-size:0.75rem;color:${claimed ? 'var(--emerald)' : 'var(--text-muted)'};font-weight:800;">
+              ${claimed ? 'UNLOCKED' : 'LOCKED'}
+            </span>
+          </div>
+          <h3 style="color:var(--gold);margin-top:6px;">${ach.name}</h3>
+          <p style="font-size:0.78rem;color:var(--text-muted);margin-top:4px;">${ach.desc}</p>
+          <div class="progress-track"><div class="progress-fill" style="width:${pct}%"></div></div>
+          <div style="font-size:0.75rem;color:var(--text-muted);">${val} / ${ach.target}</div>
+        </div>
+        <button class="${ready ? 'btn-gold' : 'btn-secondary'}" ${!ready ? 'disabled' : ''}>
+          ${claimed ? '✓ Reward Claimed' : `Claim 🪙 ${ach.rewardCoins}`}
+        </button>
+      `;
+      if (ready) {
+        card.querySelector('button').addEventListener('click', () => {
+          saveData.achievementsClaimed.push(ach.id);
+          saveData.coins += ach.rewardCoins;
+          saveData.lifetimeCoins += ach.rewardCoins;
+          audio.sfxTreasure();
+          saveGameData();
+          renderAchievementsModal();
+          showToast(`🏆 Achievement Claimed! +${ach.rewardCoins} Coins!`);
+        });
+      }
+      grid.appendChild(card);
+    });
+  }
+
+  // Render 7-Day Daily Rewards Calendar
+  function renderDailyCalendar() {
+    const todayStr = new Date().toISOString().slice(0, 10);
+    document.getElementById('daily-streak-count').textContent = saveData.dailyStreak + ' Days';
+    const grid = document.getElementById('daily-calendar-grid');
+    grid.innerHTML = '';
+
+    DAILY_REWARDS_DEF.forEach(d => {
+      const canClaim = (d.day === ((saveData.dailyClaimedDay % 7) + 1)) && (saveData.lastLoginDate !== todayStr);
+      const alreadyClaimed = d.day <= (saveData.dailyClaimedDay % 7) && saveData.lastLoginDate === todayStr;
+      const card = document.createElement('div');
+      card.className = 'item-card' + (canClaim ? ' selected' : '');
+      card.innerHTML = `
+        <div>
+          <div class="item-avatar">${d.icon}</div>
+          <h3 style="color:var(--gold);margin-top:8px;">${d.label}</h3>
+          <p style="font-size:0.82rem;color:var(--text-main);margin-top:4px;">${d.rewardText}</p>
+        </div>
+        <button class="${canClaim ? 'btn-gold' : 'btn-secondary'}" ${!canClaim ? 'disabled' : ''}>
+          ${alreadyClaimed ? '✓ Claimed' : (canClaim ? 'Claim Today!' : 'Locked')}
+        </button>
+      `;
+      if (canClaim) {
+        card.querySelector('button').addEventListener('click', () => {
+          saveData.lastLoginDate = todayStr;
+          saveData.dailyClaimedDay++;
+          saveData.dailyStreak++;
+          if (d.type === 'coins') saveData.coins += d.amount;
+          else if (d.type === 'gems') saveData.gems += d.amount;
+          else if (d.type === 'headstarts') saveData.headstarts += d.amount;
+          else if (d.type === 'tokens') saveData.tokens += d.amount;
+          else if (d.type === 'chest') {
+            saveData.coins += 2500;
+            saveData.gems += 20;
+            saveData.tokens += 8;
+          }
+          audio.sfxTreasure();
+          saveGameData();
+          renderDailyCalendar();
+          showToast(`🎁 Claimed ${d.rewardText}!`);
+        });
+      }
+      grid.appendChild(card);
+    });
+  }
+
+  /* =========================================================================
+   * 15. EVENT BINDINGS & FULLSCREEN / VISIBILITY HANDLERS
+   * ========================================================================= */
+  document.querySelectorAll('#mode-selector .mode-btn').forEach(btn => {
+    btn.addEventListener('click', () => {
+      audio.sfxClick();
+      document.querySelectorAll('#mode-selector .mode-btn').forEach(b => b.classList.remove('active'));
+      btn.classList.add('active');
+      game.mode = btn.dataset.mode;
+    });
+  });
+
+  document.getElementById('btn-play-now').addEventListener('click', startNewRun);
+
+  document.querySelectorAll('[data-open]').forEach(btn => {
+    btn.addEventListener('click', () => {
+      audio.sfxClick();
+      const target = btn.dataset.open;
+      if (target === 'jr-characters-modal') renderCharactersModal();
+      else if (target === 'jr-shop-modal') renderShopModal();
+      else if (target === 'jr-upgrades-modal') renderUpgradesModal();
+      else if (target === 'jr-missions-modal') renderMissionsModal();
+      else if (target === 'jr-achievements-modal') renderAchievementsModal();
+      else if (target === 'jr-daily-modal') renderDailyCalendar();
+      showScreen(target);
+    });
+  });
+
+  document.querySelectorAll('[data-close-modal]').forEach(btn => {
+    btn.addEventListener('click', () => {
+      audio.sfxClick();
+      showScreen('jr-main-menu');
+    });
+  });
+
+  document.getElementById('btn-close-settings').addEventListener('click', () => {
+    audio.sfxClick();
+    if (game.state === 'PAUSED') showScreen('jr-pause-modal');
+    else showScreen('jr-main-menu');
+  });
+
+  // Character Tabs
+  document.querySelectorAll('[data-char-tab]').forEach(btn => {
+    btn.addEventListener('click', () => {
+      document.querySelectorAll('[data-char-tab]').forEach(b => b.classList.remove('active'));
+      btn.classList.add('active');
+      const isRoster = btn.dataset.charTab === 'roster';
+      document.getElementById('char-roster-view').style.display = isRoster ? 'grid' : 'none';
+      document.getElementById('char-custom-view').style.display = isRoster ? 'none' : 'grid';
+    });
+  });
+
+  // Shop Tabs
+  document.querySelectorAll('[data-shop-tab]').forEach(btn => {
+    btn.addEventListener('click', () => {
+      document.querySelectorAll('[data-shop-tab]').forEach(b => b.classList.remove('active'));
+      btn.classList.add('active');
+      currentShopTab = btn.dataset.shopTab;
+      renderShopModal();
+    });
+  });
+
+  // Mission Tabs
+  document.querySelectorAll('[data-mis-tab]').forEach(btn => {
+    btn.addEventListener('click', () => {
+      document.querySelectorAll('[data-mis-tab]').forEach(b => b.classList.remove('active'));
+      btn.classList.add('active');
+      currentMissionTab = btn.dataset.misTab;
+      renderMissionsModal();
+    });
+  });
+
+  // HUD & Pause Controls
+  document.getElementById('btn-hud-pause').addEventListener('click', pauseGame);
+  document.getElementById('btn-hud-ability').addEventListener('click', triggerHeroSpecialAbility);
+  document.getElementById('btn-hud-settings').addEventListener('click', () => {
+    pauseGame();
+    showScreen('jr-settings-modal');
+  });
+
+  document.getElementById('btn-pause-resume').addEventListener('click', resumeGame);
+  document.getElementById('btn-pause-restart').addEventListener('click', startNewRun);
+  document.getElementById('btn-pause-settings').addEventListener('click', () => showScreen('jr-settings-modal'));
+  document.getElementById('btn-pause-menu').addEventListener('click', () => {
+    game.state = 'MENU';
+    document.getElementById('jr-hud').classList.remove('active');
+    showScreen('jr-main-menu');
+  });
+
+  // Game Over & Revive Buttons
+  document.getElementById('btn-go-retry').addEventListener('click', startNewRun);
+  document.getElementById('btn-go-menu').addEventListener('click', () => {
+    game.state = 'MENU';
+    document.getElementById('jr-hud').classList.remove('active');
+    showScreen('jr-main-menu');
+  });
+
+  document.getElementById('btn-revive-gem').addEventListener('click', () => {
+    const cost = 5 * (game.revivesUsed + 1);
+    if (saveData.gems >= cost) {
+      saveData.gems -= cost;
+      saveGameData();
+      executeRevive();
+    } else {
+      showToast('Not enough Magic Gems!');
+    }
+  });
+
+  document.getElementById('btn-revive-token').addEventListener('click', () => {
+    if (saveData.reviveAnkhs > 0) {
+      saveData.reviveAnkhs--;
+      saveGameData();
+      executeRevive();
+    } else {
+      showToast('No Resurrection Ankhs owned!');
+    }
+  });
+
+  document.getElementById('btn-revive-sponsor').addEventListener('click', e => {
+    const btn = e.currentTarget;
+    btn.disabled = true;
+    btn.textContent = '📡 Calibrating Beacon (3s)...';
+    setTimeout(() => {
+      btn.disabled = false;
+      btn.textContent = '📡 Sponsor Beacon (3s)';
+      executeRevive();
+    }, 2500);
+  });
+
+  // Fullscreen Toggle
+  function toggleFullscreen() {
+    const el = document.documentElement;
+    if (!document.fullscreenElement) {
+      if (el.requestFullscreen) el.requestFullscreen().catch(() => {});
+    } else {
+      if (document.exitFullscreen) document.exitFullscreen().catch(() => {});
+    }
+  }
+  document.getElementById('btn-hud-fullscreen').addEventListener('click', toggleFullscreen);
+  document.getElementById('btn-menu-fullscreen').addEventListener('click', toggleFullscreen);
+
+  // Settings Bindings
+  function applySettingsToEngine() {
+    document.getElementById('set-music-on').checked = saveData.settings.musicOn;
+    document.getElementById('set-music-vol').value = saveData.settings.musicVol;
+    document.getElementById('set-sfx-on').checked = saveData.settings.sfxOn;
+    document.getElementById('set-sfx-vol').value = saveData.settings.sfxVol;
+    document.getElementById('set-graphics').value = saveData.settings.graphics;
+    document.getElementById('set-cam-sens').value = saveData.settings.camSens;
+    document.getElementById('set-language').value = saveData.settings.language;
+    document.getElementById('set-vibration').checked = saveData.settings.vibration;
+    document.getElementById('set-perf-mode').checked = saveData.settings.perfMode;
+
+    // Apply Graphics Preset
+    const q = saveData.settings.graphics;
+    if (q === 'low') {
+      renderer.setPixelRatio(1.0);
+      weatherParticles.visible = false;
+    } else if (q === 'medium') {
+      renderer.setPixelRatio(Math.min(window.devicePixelRatio || 1, 1.35));
+      weatherParticles.visible = true;
+    } else {
+      renderer.setPixelRatio(Math.min(window.devicePixelRatio || 1, 1.75));
+      weatherParticles.visible = true;
+    }
+
+    // Apply Localization
+    const dict = I18N[saveData.settings.language] || I18N.en;
+    document.querySelectorAll('[data-i18n]').forEach(el => {
+      const key = el.dataset.i18n;
+      if (dict[key]) el.textContent = dict[key];
+    });
+  }
+
+  ['set-music-on', 'set-music-vol', 'set-sfx-on', 'set-sfx-vol', 'set-graphics', 'set-cam-sens', 'set-language', 'set-vibration', 'set-perf-mode'].forEach(id => {
+    document.getElementById(id).addEventListener('change', () => {
+      saveData.settings.musicOn = document.getElementById('set-music-on').checked;
+      saveData.settings.musicVol = Number(document.getElementById('set-music-vol').value);
+      saveData.settings.sfxOn = document.getElementById('set-sfx-on').checked;
+      saveData.settings.sfxVol = Number(document.getElementById('set-sfx-vol').value);
+      saveData.settings.graphics = document.getElementById('set-graphics').value;
+      saveData.settings.camSens = Number(document.getElementById('set-cam-sens').value);
+      saveData.settings.language = document.getElementById('set-language').value;
+      saveData.settings.vibration = document.getElementById('set-vibration').checked;
+      saveData.settings.perfMode = document.getElementById('set-perf-mode').checked;
+      applySettingsToEngine();
+      saveGameData();
+    });
+  });
+
+  document.getElementById('btn-reset-save').addEventListener('click', () => {
+    if (window.confirm('Are you sure you want to permanently reset all local coins, gems, unlocked heroes, and records?')) {
+      saveData = getDefaultSave();
+      saveGameData();
+      applySettingsToEngine();
+      applySelectedHeroAppearance();
+      showToast('Game Data Reset to Defaults.');
+    }
+  });
+
+  window.addEventListener('resize', () => {
+    camera.aspect = window.innerWidth / window.innerHeight;
+    camera.updateProjectionMatrix();
+    renderer.setSize(window.innerWidth, window.innerHeight);
+  });
+
+  document.addEventListener('visibilitychange', () => {
+    if (document.hidden && game.state === 'RUNNING') {
+      pauseGame();
+    }
+  });
+
+  /* =========================================================================
+   * 16. BOOT SEQUENCE
+   * ========================================================================= */
+  applySettingsToEngine();
+  refreshMenuUI();
+
+  let bootPct = 0;
+  const loadFill = document.getElementById('jr-loading-fill');
+  const bootInterval = setInterval(() => {
+    bootPct += 25;
+    loadFill.style.width = Math.min(100, bootPct) + '%';
+    if (bootPct >= 100) {
+      clearInterval(bootInterval);
+      document.getElementById('jr-loading-screen').classList.remove('active');
+      showScreen('jr-main-menu');
+      requestAnimationFrame(animate);
+    }
+  }, 110);
+})();
+</script>
 </body>
 </html>
